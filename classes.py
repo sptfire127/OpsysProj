@@ -16,6 +16,7 @@ of running tasks on a processor.
         step handler (SEE HANDLERS).
 
 Attributes:
+    rTime           -- Running time of the processor
     cSwitchTime     -- Context switch time overhead
     workQ           -- Processor work Queue / ready Queue (Which is basically a stack with extra functionality)
     procPool        -- Total pool of all processors in scope
@@ -31,11 +32,32 @@ class Processor():
     IDEA: Have self.algorithm be set on init
     """
     def __init__(self, cSwitchTime, algorithm):
+        self.rTime = 0
         self.cSwitchTime = cSwitchTime
         self.workQ = workQ()
         self.procPool = []
         self.algorithm = algorithm
         self.cProc = None
+
+
+
+
+    """
+    Add a processor to the procPool
+    """
+    def addProc(self, proc):
+        #Make sure proc is a process
+        assert(isinstance(proc, Process))
+        self.procPool.append(proc)
+        return
+
+
+    """
+    Are we done yet? :Kappa:
+    """
+    def finished(self):
+        return ((self.workQ.size() == 0) and (len(self.procPool) == 0) and self.cProc.state == "FINISHED")
+
 
 
     """
@@ -49,8 +71,18 @@ class Processor():
         #LOG SHIT HERE TODO
 
 
+        #Increment running time
+        self.rTime += 1
+
+        #Step the worQ
         self.__step_workQ()
 
+        #If proc is not none, step it. If it is none, will be handled in handler
+        if(not (self.cProc is None)):
+            self.cProc.step()
+
+
+        #Call correct handler
         if(self.algorithm == "FCFS"):
             self.__handle_FCFS()
         elif(self.algorithm == "SRT"):
@@ -77,19 +109,33 @@ class Processor():
 
     """
     def __step_workQ(self):
-        
-        pass
+
+        #Step every process in the procPool and handle adding / removing from workQ
+        for p in self.procPool:
+            p.step()
+            if ((p.getArrival() <= self.rTime) and (p.isReady())):
+                self.workQ.enqueu(p)
+                self.procPool.remove(p)
+
+            #If it is finished, then remove it all together.
+            elif(p.isFinished()):
+                print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
+                self.procPool.remove(p)
+
+        #If it is not ready, then remove it from workQ, this shouldnt happen, but just in case.
+        for p in self.workQ.queue:
+            p.step()
+            if(not p.isReady()):
+                self.workQ.queue.remove(p)
+                self.procPool.append(p)
+            #If finished then remove
+            elif(p.isFinished()):
+                print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
+                self.workQ.queue.remove(p)
 
 
-    """
-    Add a processor to the procPool
-    """
-    def addProc(self, proc):
-        #Make sure proc is a process
-        assert(isinstance(proc, Process))
-        self.procPool.append(proc)
-        return
-
+        #Step the workQ object
+        self.workQ.step(self.algorithm)
 
 
     #######SCHEDULING ALGORITHM HANDLERS BELOW THIS LINE####
@@ -102,8 +148,33 @@ class Processor():
     #
     ########################################################
     def __handle_FCFS(self):
-        #TODO
-        pass
+
+        #If none then put in process
+        if(self.cProc is None):
+            self.cProc = self.workQ.dequeue()
+            self.cProc.stateChange("RUNNING")
+
+        
+        elif(self.cProc.state == "BLOCKED"):
+            self.procPool.append(self.cProc)
+            self.cProc = self.workQ.dequeue()
+            self.cProc.stateChange("RUNNING")
+
+        elif(self.cProc.state == "RUNNING"):
+            pass
+            #Continue running process
+
+        elif(self.cProc.isFinished()):
+            print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
+            if(self.finished()):
+                return
+            self.cProc = self.workQ.dequeue()
+            self.cProc.stateChange("RUNNING")
+
+
+        else:
+            raise RuntimeError("INVALID STATE ON CPROC: {0}".format(self.cProc))
+
 
     def __handle_SRT(self):
         #TODO
@@ -113,6 +184,17 @@ class Processor():
         #TODO
         pass
     #######SCHEDULING ALGORITHM HANDLERS ABOVE THIS LINE####
+
+    def qprint(self):
+        print("PRINTING PROCESS POOL:")
+        for p in self.procPool:
+            print(p)
+        print()
+        print("PRINTING WORKQ:")
+        for p in self.workQ.queue:
+            print(p)
+        print()
+
 
 
     def __str__(self):
@@ -144,7 +226,8 @@ Attributes: - Label
             - I/O Time Total
             --I/O Time Left
 
-            - wait (time spent waiting)
+            --waitTime
+
 
 
 """
@@ -157,8 +240,9 @@ class Process():
         self.burstTime = burst
         self.burstCount = burstCount
         self.IOtime = IOtime
-        self.burstTimeLeft = 0
-        self.IOtimeLeft = 0
+        self.burstTimeLeft = self.burstTime
+        self.IOtimeLeft = self.IOtime
+        self.waitTime = 0
 
 
     """
@@ -170,6 +254,17 @@ class Process():
             raise RuntimeError("INVALID STATE CHANGE")
         self.state = state
 
+    #returns whether or not this process is in the ready state
+    def isReady(self):
+        return self.state == "READY"
+
+    def isFinished(self):
+        return self.state == "FINISHED"
+
+    #Getter for self.arrivalTime
+    def getArrival(self):
+        return self.arrivalTime
+
 
     """
     This should do arithmitic off the BurstTime, I/O Time
@@ -179,28 +274,35 @@ class Process():
     def step(self):
 
         #Determine state and decriment accoringly
-        if(self.state = "READY"):
-            pass
-            #DO I PASS HERE? FIXME
+        if(self.state == "READY"):
+            self.waitTime += 1
+            #DO I PASS HERE? FIXME MAYBE COUNT WAIT TIME?
         elif(self.state == "RUNNING"):
             self.burstTimeLeft -= 1
 
         elif(self.state == "BLOCKED"):
             self.IOtimeLeft -= 1
+        elif(self.state == "FINISHED"):
+            pass
         else:
             raise RuntimeError("PROCESS STATE INVALID")
         pass
 
 
+        #More arithmitic
         if(self.burstTimeLeft == 0):
             self.burstTimeLeft = self.burstTime
-            self.state = "BLOCKED"
+            self.burstCount -= 1
+            if(self.burstCount == 0):
+                self.state = "FINISHED"
+            else:
+                self.state = "BLOCKED"
         elif(self.IOtimeLeft == 0):
             self.IOtimeLeft = self.IOtime
             self.state = "READY"
 
     def __str__(self):
-        return "Label: {0} |State: {1}".format(self.label, self.state)
+        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstCount: {3})".format(self.label, self.state, self.burstTimeLeft, self.burstCount)
 
 ################################################################################
 
@@ -223,14 +325,16 @@ class workQ():
     This should reorganize the workQ based on the algorithm passed in
     """
     def step(self, algorithm):
+
+        #Call right handler
         if(algorithm == "FCFS"):
-            return __qFCFS(self)
+            return self.__qFCFS()
 
         elif(algorithm == "SRT"):
-            return __qSRT(self)
+            return self.__qSRT()
 
         elif(algorithm == "RR"):
-            return __qRR(self)
+            return self.__qRR()
         else:
             raise RuntimeError("BAD SCHEDULING ALGORITHM")
             exit()
@@ -243,8 +347,7 @@ class workQ():
     """
     def enqueu(self, proc):
         assert(isinstance(proc, Process))
-        assert(not isEmpty(self))
-        return self.queue.append(proc)
+        self.queue.append(proc)
 
 
     """
@@ -258,7 +361,7 @@ class workQ():
 # DONT SHOULD NOT BE INVOKED DIRECTLY
 ################################################################################
     def __qFCFS(self):
-        #TODO
+        #ENQUEUE and DEQUEUE already preserve FCFS Nature.. ? #FIXME
         pass
 
     def __qSRT(self):
