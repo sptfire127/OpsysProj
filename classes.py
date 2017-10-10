@@ -18,10 +18,17 @@ of running tasks on a processor.
 Attributes:
     rTime           -- Running time of the processor
     cSwitchTime     -- Context switch time overhead
+    cSwitchAmt      -- Running amount of context switches
     workQ           -- Processor work Queue / ready Queue (Which is basically a stack with extra functionality)
     procPool        -- Total pool of all processors in scope
     algorithm       -- Selected scheduling algorithm
     cProc           -- Current running process (Used for logging / debugging)
+
+    totalBurst      -- running total of burst times
+    startBurst      -- value used to keep track of the start of a cpu burst
+    nBurst          -- number of total bursts
+
+    donePool        -- pool of finished processes
 
 """
 class Processor():
@@ -34,10 +41,66 @@ class Processor():
     def __init__(self, cSwitchTime, algorithm):
         self.rTime = 0
         self.cSwitchTime = cSwitchTime
+        self.cSwitchAmt = 0
+
         self.workQ = workQ()
         self.procPool = []
         self.algorithm = algorithm
         self.cProc = None
+
+        self.totalBurst = 0
+        self.startBurst = 0
+        self.nBurst = 0
+
+        self.donePool = []
+
+
+
+
+
+    """
+    Run the simulation through 'cycles' amount of iterations
+        NOTE: If cycles == -1, run till completion
+    """
+    def run(self, cycles):
+        #If -1, run till completion
+        if(cycles == -1):
+            i = 0
+            while(not self.finished()):
+                print("\n==============Execution {0}==============\n".format(i))
+                print(self)                 #Print out processor state
+                self.qprint()               #Print out processor queue's
+                self.step()                 #Step the processor
+                if(self.finished()):        #If we finish, then check
+                    print("Done. Looped through {0} iterations".format(i))
+                    return 0
+                print("\n===============================\n")
+                i += 1
+            return 0
+
+
+        else:
+            for i in range(0, cycles):
+                print("\n==============Execution {0}==============\n".format(i))
+                print(self)                 #Print out processor state
+                self.qprint()               #Print out processor queue's
+                self.step()                 #Step the processor
+                if(self.finished()):        #If we finish, then check
+                    print("Done. Looped through {0} iterations".format(i))
+                    return 0
+                print("\n===============================\n")
+
+
+
+    """
+    Does arithmitic to calculate the current burst and add it to the average.
+
+    NOTE: YOU MUST TRACK START BURST AND LOG EVERY TIME A CONTEXT SWITCH OCCURS.
+    """
+    def logBurst(self):
+        bTime = self.rTime - self.startBurst
+        self.nBurst += 1
+        self.totalBurst = (self.totalBurst + bTime)
 
 
 
@@ -133,32 +196,50 @@ class Processor():
                 print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
                 self.workQ.queue.remove(p)
 
-
         #Step the workQ object
         self.workQ.step(self.algorithm)
+
+
+    def contextSwitch(self, newProc):
+        assert(isinstance(newProc, Process))
+
+        #Dont log on initial context switch
+        if(not (self.cProc is None)):
+            self.logBurst()
+        self.cProc = newProc
+        self.cProc.stateChange("RUNNING")
+        self.startBurst = self.rTime        #Log the start of a burst
+        self.cSwitchAmt += 1                #Add a context switch to total
 
 
     #######SCHEDULING ALGORITHM HANDLERS BELOW THIS LINE####
     #   These should all manipulate the state of the processor
     #   based on their respective algorithms.
     #
-    #   IE: Should I context switch? Pull next process from workQ?
-    #       Keep track of time spent on context switches, running time, etc.
+    #   THIS SHOULD BE THE ONLY PLACE A CONTEXT SWITCH HAPPENS
     #
     #
     ########################################################
     def __handle_FCFS(self):
 
-        #If none then put in process
-        if(self.cProc is None):
-            self.cProc = self.workQ.dequeue()
-            self.cProc.stateChange("RUNNING")
+        #If none then put in process (As long as workQ has jobs)
+        #CONTEXT SWITCH
+        if(self.cProc is None and (not self.workQ.isEmpty())):
+            p = self.workQ.dequeue()
+            self.contextSwitch(p)
+            return
 
-        
-        elif(self.cProc.state == "BLOCKED"):
-            self.procPool.append(self.cProc)
-            self.cProc = self.workQ.dequeue()
-            self.cProc.stateChange("RUNNING")
+        #cProc is None but workQ is empty
+        #Just keep cycling processor.
+        elif(self.cProc is None and (self.workQ.isEmpty())):
+            pass
+
+        #if cProc became blocked (from calling cProc.step()), swap it out for new process in workQ
+        #CONTEXT SWITCH
+        elif(self.cProc.state == "BLOCKED" and (not self.workQ.isEmpty())):
+            p = self.workQ.dequeue()
+            self.contextSwitch(p)
+
 
         elif(self.cProc.state == "RUNNING"):
             pass
@@ -166,14 +247,21 @@ class Processor():
 
         elif(self.cProc.isFinished()):
             print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
+
+
+            self.donePool.append(self.cProc)
+            
+            #Check to see if we are finished. If so, return.
             if(self.finished()):
+                self.logBurst()
                 return
-            self.cProc = self.workQ.dequeue()
-            self.cProc.stateChange("RUNNING")
+
+            p = self.workQ.dequeue()
+            self.contextSwitch(p)
 
 
         else:
-            raise RuntimeError("INVALID STATE ON CPROC: {0}".format(self.cProc))
+            raise RuntimeError("ERROR IN PROCESSOR HANDLER")
 
 
     def __handle_SRT(self):
@@ -187,19 +275,35 @@ class Processor():
 
     def qprint(self):
         print("PRINTING PROCESS POOL:")
+        i = 0
         for p in self.procPool:
-            print(p)
+            print(str(i) + "|------>|" + str(p))
+            i += 1
         print()
         print("PRINTING WORKQ:")
+        i = 0
         for p in self.workQ.queue:
-            print(p)
+            print(str(i) + "|------>|" + str(p))
+            i += 1
         print()
 
+    def statprint(self):
+        print("===== PROC STATS =====\n")
 
+        if(self.nBurst == 0):
+            print("totalBurst : {0}\nnBurst : {1}\nAvgBursts : {2}\ncSwitchAmt : {3}".format(self.totalBurst, self.nBurst, self.totalBurst, self.cSwitchAmt))
+            return
+
+        print("totalBurst : {0}\nnBurst : {1}\nAvgBursts : {2}\ncSwitchAmt : {3}".format(self.totalBurst, self.nBurst, (self.totalBurst / self.nBurst), self.cSwitchAmt))
+
+
+
+    def __repr__(self):
+        return str(vars(self))
 
     def __str__(self):
-        s = "PROC INFO:\ncSwitchTime : {0}\nworkQ Size : {1}\n".format(self.cSwitchTime, self.workQ.size()) + \
-            "procPool Size : {0}\nalgorithm : {1}\ncProc : {2}".format(len(self.procPool), self.algorithm, self.cProc)
+        s = "PROC INFO:\ncSwitchTime : {0} ms\nRunTime : {1} ms\nworkQ Size : {2} processes\n".format(self.cSwitchTime, self.rTime, self.workQ.size()) + \
+            "procPool Size : {0} processes\nalgorithm : {1}\ncProc : {2}".format(len(self.procPool), self.algorithm, self.cProc)
         return s
 
 ################################################################################
@@ -301,9 +405,14 @@ class Process():
             self.IOtimeLeft = self.IOtime
             self.state = "READY"
 
-    def __str__(self):
-        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstCount: {3})".format(self.label, self.state, self.burstTimeLeft, self.burstCount)
 
+
+    def __repr__(self):
+        return str(vars(self))
+
+
+    def __str__(self):
+        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstTime: {3} | burstCount: {4}) (IOtimeLeft: {5} | IOtime: {6})\n".format(self.label, self.state, self.burstTimeLeft, self.burstTime, self.burstCount, self.IOtimeLeft, self.IOtime)
 ################################################################################
 
 
@@ -356,6 +465,10 @@ class workQ():
     def dequeue(self):
         return self.queue.pop(0)
 
+
+
+    def __repr__(self):
+        return str(vars(self))
 
 ################################################################################
 # DONT SHOULD NOT BE INVOKED DIRECTLY
