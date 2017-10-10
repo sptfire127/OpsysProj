@@ -79,7 +79,9 @@ class Processor():
                 self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
+                    #self.step()
                     print("Done. Looped through {0} iterations".format(i))
+                    self.qprint()
                     break
                 print("\n===============================\n")
                 i += 1
@@ -105,7 +107,9 @@ class Processor():
                 self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
+                    self.step()
                     print("Done. Looped through {0} iterations".format(i))
+                    self.qprint()
                     return 0
                 print("\n===============================\n")
 
@@ -220,6 +224,7 @@ class Processor():
         self.workQ.step(self.algorithm)
 
 
+    #TODO ADD CONTEXT SWITCH TIME ARITHMATIC
     def contextSwitch(self, newProc):
         assert(isinstance(newProc, Process))
         #Dont log on initial context switch
@@ -272,6 +277,7 @@ class Processor():
         elif(self.cProc.isFinished()):
             print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
             self.donePool.append(self.cProc)
+            self.cProc.step()
 
             #Check to see if we are finished. If so, return.
             if(self.finished()):
@@ -316,6 +322,12 @@ class Processor():
         print("PRINTING WORKQ:")
         i = 0
         for p in self.workQ.queue:
+            print(str(i) + "|------>|" + str(p))
+            i += 1
+        print()
+        print("PRINTING DONEPOOL:")
+        i = 0
+        for p in self.donePool:
             print(str(i) + "|------>|" + str(p))
             i += 1
         print()
@@ -386,6 +398,7 @@ class Process():
         self.arrivalTimeLeft = self.arrivalTime
         self.burstTime = burst
         self.burstCount = burstCount
+        self.executionTime = 0
         self.IOtime = IOtime
         self.burstTimeLeft = self.burstTime
         self.IOtimeLeft = self.IOtime
@@ -427,19 +440,20 @@ class Process():
 
         #Proc is waiting to arrive
         elif(self.state == "READY" and not self.arrived):
-            self.arrivalTimeLeft -= 1
             if(self.arrivalTimeLeft == 0):
                 self.arrived = True
+            self.arrivalTimeLeft -= 1
 
 
         elif(self.state == "RUNNING"):
+            self.executionTime += 1
             self.burstTimeLeft -= 1
 
         elif(self.state == "BLOCKED"):
             self.IOtimeLeft -= 1
 
         elif(self.state == "FINISHED"):
-            self.turnAround = self.waitTime + (self.burstTime * self.burstCount)
+            self.turnAround = self.waitTime + (self.executionTime)
 
         else:
             raise RuntimeError("PROCESS STATE INVALID")
