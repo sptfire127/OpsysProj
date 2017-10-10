@@ -30,6 +30,9 @@ Attributes:
 
     donePool        -- pool of finished processes
 
+    avgWait         -- average wait time
+    avgTurnAround   -- average turn around time
+
 """
 class Processor():
 
@@ -54,6 +57,9 @@ class Processor():
 
         self.donePool = []
 
+        self.avgWait = 0
+        self.avgTurnAround = 0
+
 
 
 
@@ -67,17 +73,30 @@ class Processor():
         if(cycles == -1):
             i = 0
             while(not self.finished()):
+
                 print("\n==============Execution {0}==============\n".format(i))
                 print(self)                 #Print out processor state
                 self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
                     print("Done. Looped through {0} iterations".format(i))
-                    return 0
+                    break
                 print("\n===============================\n")
                 i += 1
-            return 0
 
+            w = 0
+            t = 0
+            for p in self.donePool:
+                print("Found wait={0} for proc : {1}".format(p.waitTime, p.label))
+                print("Found turnAround={0} for proc : {1}".format(p.turnAround, p.label))
+
+                w += p.waitTime
+                t += p.turnAround
+            w = w / len(self.donePool)
+            t = t / len(self.donePool)
+            print("Avg wait time : {0}".format(w))
+            print("Avg turnAround time : {0}".format(t))
+            return 0
 
         else:
             for i in range(0, cycles):
@@ -145,6 +164,7 @@ class Processor():
             self.cProc.step()
 
 
+
         #Call correct handler
         if(self.algorithm == "FCFS"):
             self.__handle_FCFS()
@@ -202,10 +222,10 @@ class Processor():
 
     def contextSwitch(self, newProc):
         assert(isinstance(newProc, Process))
-
         #Dont log on initial context switch
         if(not (self.cProc is None)):
             self.logBurst()
+            self.procPool.append(self.cProc)
         self.cProc = newProc
         self.cProc.stateChange("RUNNING")
         self.startBurst = self.rTime        #Log the start of a burst
@@ -240,6 +260,10 @@ class Processor():
             p = self.workQ.dequeue()
             self.contextSwitch(p)
 
+        #If cProc is became blocked but next process is not ready, then pass
+        elif(self.cProc.state == "BLOCKED" and (self.workQ.isEmpty())):
+            self.procPool.append(self.cProc)
+            self.cProc = None
 
         elif(self.cProc.state == "RUNNING"):
             pass
@@ -247,20 +271,24 @@ class Processor():
 
         elif(self.cProc.isFinished()):
             print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
-
-
             self.donePool.append(self.cProc)
-            
+
             #Check to see if we are finished. If so, return.
             if(self.finished()):
                 self.logBurst()
                 return
-
-            p = self.workQ.dequeue()
-            self.contextSwitch(p)
-
+            #Do we have a next process ?
+            elif(not self.workQ.isEmpty()):
+                p = self.workQ.dequeue()
+                self.contextSwitch(p)
+            #No next proc, just pass
+            else:
+                pass
 
         else:
+            self.qprint()
+            self.statprint()
+            print(self)
             raise RuntimeError("ERROR IN PROCESSOR HANDLER")
 
 
@@ -272,7 +300,12 @@ class Processor():
         #TODO
         pass
     #######SCHEDULING ALGORITHM HANDLERS ABOVE THIS LINE####
+    ########################################################
+    ####### PRINTING FUNCTIONS BELOW THIS LINE #############
 
+    """
+    Print out both of the Q's
+    """
     def qprint(self):
         print("PRINTING PROCESS POOL:")
         i = 0
@@ -287,6 +320,9 @@ class Processor():
             i += 1
         print()
 
+    """
+    Print out statistics for this processor
+    """
     def statprint(self):
         print("===== PROC STATS =====\n")
 
@@ -319,7 +355,10 @@ Attributes: - Label
             - State | • READY: in the ready queue, ready to use the CPU
                     | • RUNNING: actively using the CPU
                     | • BLOCKED: blocked on I/O
+                    | • FINISHED: Done executings
+
                 =SHOULD INIT TO READY STATE????=
+            - Arrived (Boolean to keep track of arrival conditions)
 
             - Arrival Time
 
@@ -331,6 +370,7 @@ Attributes: - Label
             --I/O Time Left
 
             --waitTime
+            --turnAround
 
 
 
@@ -338,15 +378,19 @@ Attributes: - Label
 class Process():
 
     def __init__(self, label, arrival, burst, burstCount, IOtime):
+        assert(burst != 0 and burstCount != 0)
         self.label = label
         self.state = "READY"
+        self.arrived = False
         self.arrivalTime = arrival
+        self.arrivalTimeLeft = self.arrivalTime
         self.burstTime = burst
         self.burstCount = burstCount
         self.IOtime = IOtime
         self.burstTimeLeft = self.burstTime
         self.IOtimeLeft = self.IOtime
         self.waitTime = 0
+        self.turnAround = 0
 
 
     """
@@ -376,32 +420,40 @@ class Process():
     NOTE: THIS IS NOT WHERE PROCESS SHOULD BE CHANGED TO A RUNNING STATE
     """
     def step(self):
-
         #Determine state and decriment accoringly
-        if(self.state == "READY"):
+        #Only increment wait if proc has started running
+        if(self.state == "READY" and self.arrived):
             self.waitTime += 1
-            #DO I PASS HERE? FIXME MAYBE COUNT WAIT TIME?
+
+        #Proc is waiting to arrive
+        elif(self.state == "READY" and not self.arrived):
+            self.arrivalTimeLeft -= 1
+            if(self.arrivalTimeLeft == 0):
+                self.arrived = True
+
+
         elif(self.state == "RUNNING"):
             self.burstTimeLeft -= 1
 
         elif(self.state == "BLOCKED"):
             self.IOtimeLeft -= 1
+
         elif(self.state == "FINISHED"):
-            pass
+            self.turnAround = self.waitTime + (self.burstTime * self.burstCount)
+
         else:
             raise RuntimeError("PROCESS STATE INVALID")
-        pass
 
 
         #More arithmitic
-        if(self.burstTimeLeft == 0):
+        if(self.burstTimeLeft <= 0 and self.state == "RUNNING"):
             self.burstTimeLeft = self.burstTime
             self.burstCount -= 1
             if(self.burstCount == 0):
                 self.state = "FINISHED"
             else:
                 self.state = "BLOCKED"
-        elif(self.IOtimeLeft == 0):
+        elif(self.IOtimeLeft <= 0 and self.state == "BLOCKED"):
             self.IOtimeLeft = self.IOtime
             self.state = "READY"
 
@@ -412,7 +464,7 @@ class Process():
 
 
     def __str__(self):
-        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstTime: {3} | burstCount: {4}) (IOtimeLeft: {5} | IOtime: {6})\n".format(self.label, self.state, self.burstTimeLeft, self.burstTime, self.burstCount, self.IOtimeLeft, self.IOtime)
+        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstTime: {3} | burstCount: {4}) (IOtimeLeft: {5} | IOtime: {6}) (waitTime : {7} arrivalTime : {8})\n".format(self.label, self.state, self.burstTimeLeft, self.burstTime, self.burstCount, self.IOtimeLeft, self.IOtime, self.waitTime, self.arrivalTime)
 ################################################################################
 
 
