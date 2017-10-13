@@ -1,3 +1,5 @@
+import operator
+
 ################################################################################
 #   Project control flow should be as follows:
 #       1. Create a processor
@@ -146,7 +148,7 @@ class Processor():
 
 
     """
-    Simulates one processor PROC_CYLCE.
+    Simulates one processor PROC_CYLCE in PROCESSOR
         This should entail ::=> - Log any processor state statistics if needed
                                 - __step_workQ()
                                 - Call correct scheduling handler
@@ -195,49 +197,79 @@ class Processor():
     """
     def __step_workQ(self):
 
+        rLst = []
         #Step every process in the procPool and handle adding / removing from workQ
         for p in self.procPool:
             p.step()
             if ((p.getArrival() <= self.rTime) and (p.isReady())):
                 self.workQ.enqueu(p)
-                self.procPool.remove(p)
+                rLst.append(p)
 
             #If it is finished, then remove it all together.
             elif(p.isFinished()):
                 print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
-                self.procPool.remove(p)
+                rLst.append(p)
+        #Go back and clean up procPool
+        for p in rLst:
+            self.procPool.remove(p)
+
+        #####################################################################
+        #Clean up List
+        rLst = []
+        #
+        #####################################################################
 
         #If it is not ready, then remove it from workQ, this shouldnt happen, but just in case.
         for p in self.workQ.queue:
             p.step()
             if(not p.isReady()):
-                self.workQ.queue.remove(p)
+                rLst.append(p)
                 self.procPool.append(p)
             #If finished then remove
             elif(p.isFinished()):
                 print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
-                self.workQ.queue.remove(p)
+                rLst.append(p)
+
+        #Go back and clean up workQ
+        for p in rLst:
+            self.workQ.queue.remove(p)
 
         #Step the workQ object
         self.workQ.step(self.algorithm)
 
+    """
+    Preform a context switch with self.cProc for newProc argument
+    Handles logic for if self.cProc is None.
 
-    #TODO ADD CONTEXT SWITCH TIME ARITHMATIC
+    NOTE: FIX THE LOGIC FOR THE CONTEXT SWITCH TIME
+    """
     def contextSwitch(self, newProc):
         assert(isinstance(newProc, Process))
-        #Dont log on initial context switch
+        #Dont log on initial context switch, Handle the calculation for cSwitchTime
         if(not (self.cProc is None)):
             self.logBurst()
             self.procPool.append(self.cProc)
-        self.cProc = newProc
-        self.cProc.waitTime += self.cSwitchTime
-        self.cProc.stateChange("RUNNING")
-        self.startBurst = self.rTime        #Log the start of a burst
-        self.rTime += self.cSwitchTime
-        for p in self.workQ.queue:
-            p.waitTime += self.cSwitchTime
+            self.rTime += self.cSwitchTime / 2
+            # Add this time to the waitTime of every READY process
+            # TODO WHAT IF A PROCESS BECOMES READY WITHIN THE TIME OF
+            # THIS CONTEXT SWITCH
+            for p in self.workQ.queue:
+                p.waitTime += self.cSwitchTime / 2
+        else:
+            #Do the same as above only with a full cSwitchTime
+            self.rTime += self.cSwitchTime
+            for p in self.workQ.queue:
+                p.waitTime += self.cSwitchTime
 
-        self.cSwitchAmt += 1                #Add a context switch to total
+
+        #Load new process, Change state, Adjust wait time
+
+        self.cProc = newProc                    #   LOAD NEW
+        self.cProc.waitTime += self.cSwitchTime #   IS THIS CORRECT ? FIXME
+        self.cProc.stateChange("RUNNING")       #   CHANGE STATE
+        self.startBurst = self.rTime            #   Log the start of a burst
+
+        self.cSwitchAmt += 1                    #   Add a context switch to total
 
 
     #######SCHEDULING ALGORITHM HANDLERS BELOW THIS LINE####
@@ -544,8 +576,8 @@ class workQ():
         pass
 
     def __qSRT(self):
-        #TODO
-        pass
+        self.queue.sort(key=operator.attrgetter("burstTimeLeft"))
+
 
     def __qRR(self):
         #TODO
