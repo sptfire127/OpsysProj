@@ -8,9 +8,9 @@ import random
 def main():
     myProccessor = Processor(cSwitchTime=10, algorithm="FCFS")
 
-    for i in range(0, 3):
+    for i in range(0, 5):
         #Set up initial
-        q = Process(label=i, arrival=random.randint(0, 5), burst=random.randint(5, 5), burstCount=random.randint(3, 3), IOtime= random.randint(5,10))
+        q = Process(label=i, arrival=i*5, burst=(1+i) * 5, burstCount=1, IOtime=i)
         print(q)
         myProccessor.addProc(q)
 

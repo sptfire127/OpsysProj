@@ -72,32 +72,32 @@ class Processor():
         #If -1, run till completion
         if(cycles == -1):
             i = 0
+            # SIMULATION LOOP
             while(not self.finished()):
-
                 print("\n==============Execution {0}==============\n".format(i))
                 print(self)                 #Print out processor state
                 self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
-                    #self.step()
+                    print("\n===============================\n")
                     print("Done. Looped through {0} iterations".format(i))
+                    print(self)
                     self.qprint()
+                    print("\n===============================\n")
                     break
                 print("\n===============================\n")
                 i += 1
 
-            w = 0
-            t = 0
+            # CALULATE AVERAGES
+            wait = 0
+            turnAround = 0
             for p in self.donePool:
-                print("Found wait={0} for proc : {1}".format(p.waitTime, p.label))
-                print("Found turnAround={0} for proc : {1}".format(p.turnAround, p.label))
-
-                w += p.waitTime
-                t += p.turnAround
-            w = w / len(self.donePool)
-            t = t / len(self.donePool)
-            print("Avg wait time : {0}".format(w))
-            print("Avg turnAround time : {0}".format(t))
+                wait += p.waitTime
+                turnAround += p.turnAround
+            wait = wait / len(self.donePool)
+            turnAround = turnAround / len(self.donePool)
+            print("Avg wait time : {0}".format(wait))
+            print("Avg turnAround time : {0}".format(turnAround))
             return 0
 
         else:
@@ -107,7 +107,6 @@ class Processor():
                 self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
-                    self.step()
                     print("Done. Looped through {0} iterations".format(i))
                     self.qprint()
                     return 0
@@ -168,7 +167,8 @@ class Processor():
             self.cProc.step()
 
 
-
+        self.__handle_FCFS()
+        """
         #Call correct handler
         if(self.algorithm == "FCFS"):
             self.__handle_FCFS()
@@ -178,7 +178,7 @@ class Processor():
             self.__handle_RR()
         else:
             raise RuntimeError("INVALID ALGORITHM")
-
+        """
 
     ########################################################
     #THESE SHOULD NEVER BE DIRECTLY CALLED, ONLY FROM STEP()
@@ -192,8 +192,6 @@ class Processor():
 
     I decided to do this in a seperate
     method to prevent bloating the scheduling methods.
-
-
     """
     def __step_workQ(self):
 
@@ -232,8 +230,13 @@ class Processor():
             self.logBurst()
             self.procPool.append(self.cProc)
         self.cProc = newProc
+        self.cProc.waitTime += self.cSwitchTime
         self.cProc.stateChange("RUNNING")
         self.startBurst = self.rTime        #Log the start of a burst
+        self.rTime += self.cSwitchTime
+        for p in self.workQ.queue:
+            p.waitTime += self.cSwitchTime
+
         self.cSwitchAmt += 1                #Add a context switch to total
 
 
@@ -383,9 +386,6 @@ Attributes: - Label
 
             --waitTime
             --turnAround
-
-
-
 """
 class Process():
 
