@@ -8,12 +8,15 @@ import random
 def main():
     myProccessor = Processor(cSwitchTime=10, algorithm="SRT")
 
-    for i in range(0, 5):
+
+    for i in range(1, 6):
         #Set up initial
-        q = Process(label=i, arrival=0, burst=random.randint(1, 25) * 5, burstCount=5, IOtime=i)
+        q = Process(label=i, arrival=i, burst=random.randint(25, 30), burstCount=5, IOtime=10)
         print(q)
         myProccessor.addProc(q)
-
+    q = Process(label=9, arrival=0, burst=5, burstCount=5, IOtime=10)
+    myProccessor.addProc(q)
+    
     myProccessor.run(-1)
 
 

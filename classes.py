@@ -35,15 +35,16 @@ Attributes:
     avgWait         -- average wait time
     avgTurnAround   -- average turn around time
 
+    tSlice          -- time slice for round robin algorithm
+    nxtSlice        -- Next time to pre-empt process
+
 """
 class Processor():
 
     """
-    DECIDE HOW TO INIT PROCESSOR
-
-    IDEA: Have self.algorithm be set on init
+    Initializer for processor class
     """
-    def __init__(self, cSwitchTime, algorithm):
+    def __init__(self, cSwitchTime, algorithm, tSlice=None):
         self.rTime = 0
         self.cSwitchTime = cSwitchTime
         self.cSwitchAmt = 0
@@ -62,6 +63,12 @@ class Processor():
         self.avgWait = 0
         self.avgTurnAround = 0
 
+        self.tSlice = tSlice
+        if(not (tSlice is None)):
+            self.nxtSlice = self.rTime + tSlice
+        else:
+            self.nxtSlice = None
+
 
 
 
@@ -74,6 +81,7 @@ class Processor():
         #If -1, run till completion
         if(cycles == -1):
             i = 0
+
             # SIMULATION LOOP
             while(not self.finished()):
                 print("\n==============Execution {0}==============\n".format(i))
@@ -94,14 +102,17 @@ class Processor():
             wait = 0
             turnAround = 0
             for p in self.donePool:
-                wait += p.waitTime
-                turnAround += p.turnAround
+                wait += p.waitTime              #Increment wait time
+                turnAround += p.turnAround      #Increment turnAround time
+
+            #Extract averages
             wait = wait / len(self.donePool)
             turnAround = turnAround / len(self.donePool)
             print("Avg wait time : {0}".format(wait))
             print("Avg turnAround time : {0}".format(turnAround))
             return 0
 
+        #Run for cycles amount of cycles
         else:
             for i in range(0, cycles):
                 print("\n==============Execution {0}==============\n".format(i))
@@ -111,6 +122,19 @@ class Processor():
                 if(self.finished()):        #If we finish, then check
                     print("Done. Looped through {0} iterations".format(i))
                     self.qprint()
+                    # CALULATE AVERAGES
+                    wait = 0
+                    turnAround = 0
+                    for p in self.donePool:
+                        wait += p.waitTime              #Increment wait time
+                        turnAround += p.turnAround      #Increment turnAround time
+
+                    #Extract averages
+                    wait = wait / len(self.donePool)
+                    turnAround = turnAround / len(self.donePool)
+                    print("Avg wait time : {0}".format(wait))
+                    print("Avg turnAround time : {0}".format(turnAround))
+
                     return 0
                 print("\n===============================\n")
 
@@ -144,6 +168,32 @@ class Processor():
     """
     def finished(self):
         return ((self.workQ.size() == 0) and (len(self.procPool) == 0) and self.cProc.state == "FINISHED")
+
+
+
+    """
+    Do I need to preempt?
+    """
+    def procReady(self):
+        if(self.workQ.isEmpty()): return False
+
+
+        if self.algorithm == "FCFS":
+            #In FCFS we never prempt a proc
+            return False;
+
+        elif self.algorithm == "SRT":
+            #If next proc.burst < this proc's burst
+            p = self.workQ.peak()
+            if(p.burstTime < self.cProc.burstTimeLeft): return True
+
+
+        elif self.algorithm == "RR":
+            if(self.rTime >= self.nxtSlice):
+                self.nxtSlice = self.rTime + self.tSlice
+                return True
+
+
 
 
 
@@ -201,7 +251,10 @@ class Processor():
         #Step every process in the procPool and handle adding / removing from workQ
         for p in self.procPool:
             p.step()
+
+            #Has the process arrived and is it ready?
             if ((p.getArrival() <= self.rTime) and (p.isReady())):
+                #Add this to the workQ and remove it from procPool later
                 self.workQ.enqueu(p)
                 rLst.append(p)
 
@@ -209,6 +262,7 @@ class Processor():
             elif(p.isFinished()):
                 print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
                 rLst.append(p)
+
         #Go back and clean up procPool
         for p in rLst:
             self.procPool.remove(p)
@@ -225,6 +279,7 @@ class Processor():
             if(not p.isReady()):
                 rLst.append(p)
                 self.procPool.append(p)
+
             #If finished then remove
             elif(p.isFinished()):
                 print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(p, self.rTime))
@@ -236,6 +291,7 @@ class Processor():
 
         #Step the workQ object
         self.workQ.step(self.algorithm)
+
 
     """
     Preform a context switch with self.cProc for newProc argument
@@ -294,35 +350,50 @@ class Processor():
         elif(self.cProc is None and (self.workQ.isEmpty())):
             pass
 
-        #if cProc became blocked (from calling cProc.step()), swap it out for new process in workQ
+        #If cProc became blocked (from calling cProc.step()), swap it out for new process in workQ
         #CONTEXT SWITCH
         elif(self.cProc.state == "BLOCKED" and (not self.workQ.isEmpty())):
             p = self.workQ.dequeue()
             self.contextSwitch(p)
 
-        #If cProc is became blocked but next process is not ready, then pass
+        #If cProc is became blocked but next process is not ready, then set to None
         elif(self.cProc.state == "BLOCKED" and (self.workQ.isEmpty())):
             self.procPool.append(self.cProc)
             self.cProc = None
 
+        #Process is running ... Continue
+        # TODO :    WE SHOULD ADD PREMPTION LOGIC HERE TO DETERMINE IF WE NEED TO
+        #           CONTEXT SWITCH, THIS SHOULD COVER ALL SUPPORTED ALGORITHMS
+        #
         elif(self.cProc.state == "RUNNING"):
-            pass
+            if(self.procReady()):
+                self.procPool.append(self.cProc)
+                p = self.workQ.dequeue()
+                self.contextSwitch(p)
+
             #Continue running process
 
+        # Process is finished
         elif(self.cProc.isFinished()):
             print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
             self.donePool.append(self.cProc)
+
+            #Call step even though we're done so the process can calculate final
+            #average statistics
             self.cProc.step()
+
 
             #Check to see if we are finished. If so, return.
             if(self.finished()):
                 self.logBurst()
                 return
+
             #Do we have a next process ?
             elif(not self.workQ.isEmpty()):
                 p = self.workQ.dequeue()
                 self.contextSwitch(p)
-            #No next proc, just pass
+
+            #No next proc, just pass.
             else:
                 pass
 
@@ -330,7 +401,7 @@ class Processor():
             self.qprint()
             self.statprint()
             print(self)
-            raise RuntimeError("ERROR IN PROCESSOR HANDLER")
+            raise RuntimeError("ERROR IN PROCESSOR HANDLER, I HAVE PRINTED MY STATE")
 
 
     def __handle_SRT(self):
@@ -345,7 +416,7 @@ class Processor():
     ####### PRINTING FUNCTIONS BELOW THIS LINE #############
 
     """
-    Print out both of the Q's
+    Print all of the Q's
     """
     def qprint(self):
         print("PRINTING PROCESS POOL:")
@@ -548,6 +619,10 @@ class workQ():
 
     def isEmpty(self):
         return len(self.queue) <= 0
+
+    def peak(self):
+        return self.queue[0]
+
 
     """
     Add process to the workQ tail
