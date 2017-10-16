@@ -81,7 +81,7 @@ class Processor():
         if(cycles == -1):
             i = 0
 
-            writeOutput("time {0}ms: Simulator started for {1} {2}\n".format(self.rTime, self.algorithm, self.getQStr()))
+            writeOutput("time {0}ms: Simulator started for {1} {2}\n".format(int(self.rTime), self.algorithm, self.getQStr()))
 
             while(not self.finished()):
                 print("\n==============Execution {0}==============\n".format(i))
@@ -111,7 +111,7 @@ class Processor():
             print("Avg wait time : {0}".format(wait))
             print("Avg turnAround time : {0}".format(turnAround))
             print("cSwitchAmt : {0}".format(self.cSwitchAmt))
-            writeOutput("time {0}ms: Simulator ended for {1}".format(self.rTime, self.algorithm))
+            writeOutput("time {0}ms: Simulator ended for {1}".format(int(self.rTime), self.algorithm))
             writeOutput("\n")
             return 0
 
@@ -194,10 +194,7 @@ class Processor():
 
         elif self.algorithm == "RR":
             if(self.rTime >= self.nxtSlice):
-                writeOutput("time {0}ms: Time slice expired; process {1} preempted with {2}ms to go {3}\n".format(self.rTime, self.cProc.label, self.cProc.burstTimeLeft, self.getQStr()))
-                #Next time to pre-empt is now + the time slice + context switch time
-                self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
-
+                writeOutput("time {0}ms: Time slice expired; process {1} preempted with {2}ms to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstTimeLeft, self.getQStr()))
                 return True
 
         return False
@@ -261,9 +258,22 @@ class Processor():
             #Has the process arrived and is it ready?
             if ((p.getArrival() <= self.rTime) and (p.isReady())):
                 #Add this to the workQ and remove it from procPool later
-                writeOutput("time {0}ms: Process {1} arrived and added to ready queue {2}\n".format(self.rTime, p.label, self.getQStr()))
                 self.workQ.enqueu(p)
                 rLst.append(p)
+
+                # OUTPUT.TXT FILEV##################################
+                if(p.arrivalTimeLeft == -25): #Aritrary constant
+                    writeOutput("time {0}ms: Process {1} completed I/O; added to ready queue {2}\n".format(int(self.rTime), p.label, self.getQStr()))
+
+                elif(not(self.cProc is None) and self.procReady()):
+                    writeOutput("time {0}ms: Process {1} arrived and will preempy {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.getQStr()))
+                    p.arrivalTimeLeft = -25 #Aritrary constant
+
+                else:
+                    writeOutput("time {0}ms: Process {1} arrived and added to ready queue {2}\n".format(int(self.rTime), p.label, self.getQStr()))
+                    p.arrivalTimeLeft = -25 #Aritrary constant
+                ####################################################
+
 
             #If it is finished, then remove it all together.
             elif(p.isFinished()):
@@ -378,6 +388,7 @@ class Processor():
         if(not (self.cProc is None) and not self.cProc.isFinished()):
             #Clean up context switch logic and wriqte output
 
+
             self.cSwitchAmt += 1                    #   Add a context switch to total
             self.rTime += (self.cSwitchTime)
             self.cProc.waitTime
@@ -405,7 +416,7 @@ class Processor():
         self.startBurst = self.rTime            #   Log the start of a burst
         self.cProc.waitTime -= 1                #   Take into account proc.step() adding
                                                 #     -> +1 to the wait time
-        writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(self.rTime, newProc.label, self.getQStr()))
+        writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(int(self.rTime), newProc.label, self.getQStr()))
 
 
     #######SCHEDULING ALGORITHM HANDLERS BELOW THIS LINE####
@@ -435,8 +446,8 @@ class Processor():
         #CONTEXT SWITCH
         elif(self.cProc.state == "BLOCKED" and (not self.workQ.isEmpty())):
             #Next time to pre-empt is now + the time slice + context switch time
-            writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(self.rTime, self.cProc.label, self.cProc.burstCount, self.getQStr()))
-            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(self.rTime, self.cProc.label, self.cProc.IOtimeLeftq, self.getQStr()))
+            writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
+            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.IOtimeLeft + int(self.rTime) + int(self.cSwitchTime/2), self.getQStr()))
 
             self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
             p = self.workQ.dequeue()
@@ -444,7 +455,8 @@ class Processor():
 
         #If cProc is became blocked but next process is not ready, then set to None
         elif(self.cProc.state == "BLOCKED" and (self.workQ.isEmpty())):
-
+            writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
+            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.IOtimeLeft + int(self.rTime), self.getQStr()))
             #Next time to pre-empt is now + the time slice + context switch time
             self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
             self.procPool.append(self.cProc)
@@ -460,6 +472,9 @@ class Processor():
         #
         elif(self.cProc.state == "RUNNING"):
             if(self.procReady()):
+                if(self.algorithm == "RR"):
+                    #Next time to pre-empt is now + the time slice + context switch time
+                    self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
                 p = self.workQ.dequeue()
                 self.contextSwitch(p)
 
@@ -469,7 +484,7 @@ class Processor():
         elif(self.cProc.isFinished()):
             print("PROCESS '{0}' FINISHED AT EXECUTION TIME {1} !".format(self.cProc, self.rTime))
             self.donePool.append(self.cProc)
-            writeOutput("time {0}ms: Process {1} terminated {2}\n".format(self.rTime, self.cProc.label, self.getQStr()))
+            writeOutput("time {0}ms: Process {1} terminated {2}\n".format(int(self.rTime), self.cProc.label, self.getQStr()))
 
             #Next time to pre-empt is now + the time slice + context switch time
             self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
@@ -570,7 +585,7 @@ class Processor():
         return str(vars(self))
 
     def __str__(self):
-        s = "PROC INFO:\ncSwitchTime : {0} ms\nRunTime : {1} ms\nworkQ Size : {2} processes\n".format(self.cSwitchTime, self.rTime, self.workQ.size()) + \
+        s = "PROC INFO:\ncSwitchTime : {0} ms\nRunTime : {1} ms\nworkQ Size : {2} processes\n".format(self.cSwitchTime, int(self.rTime), self.workQ.size()) + \
             "procPool Size : {0} processes\nalgorithm : {1}\ncProc : {2}\n".format(len(self.procPool), self.algorithm, self.cProc)
         if( not (self.tSlice is None)):
             s += "nxtSlice : {0} ms".format(self.nxtSlice)
