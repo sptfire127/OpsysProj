@@ -4,8 +4,8 @@ import random
 
 
 
-def main():
-    myProccessor = Processor(cSwitchTime=8, algorithm="RR", tSlice=70)
+def main(algo):
+    myProccessor = Processor(cSwitchTime=8, algorithm=algo, tSlice=70)
 
 
     f = "test1.txt"#input("Enter a file name: ./tests/")
@@ -27,9 +27,11 @@ def main():
 
 
 
-
+    #Defined above
     myProccessor.run(-1)
 
 
 if __name__ == "__main__":
-    main()
+    main("FCFS")
+    main("SRT")
+    main("RR")
