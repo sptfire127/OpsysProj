@@ -1,3 +1,4 @@
+# coding=utf-8
 import operator
 
 ################################################################################
@@ -12,11 +13,9 @@ import operator
 """
 Processor class that simulates the running and mechanics
 of running tasks on a processor.
-
 --step() == 1 cpu PROC_CYLCE (idk if this was supposed to be one cycle of one millisecond. I left it as PROC_CYLCE)
     ->  Step should compare self.algorithm to select the correct
         step handler (SEE HANDLERS).
-
 Attributes:
     rTime           -- Running time of the processor
     cSwitchTime     -- Context switch time overhead
@@ -25,20 +24,18 @@ Attributes:
     procPool        -- Total pool of all processors in scope
     algorithm       -- Selected scheduling algorithm
     cProc           -- Current running process (Used for logging / debugging)
-
     totalBurst      -- running total of burst times
+    totalBurstCount -- Number of total CPU bursts
     startBurst      -- value used to keep track of the start of a cpu burst
     nBurst          -- number of total bursts
-
     donePool        -- pool of finished processes
-
     avgWait         -- average wait time
     avgTurnAround   -- average turn around time
-
     tSlice          -- time slice for round robin algorithm
     nxtSlice        -- Next time to pre-empt process
-
 """
+
+
 class Processor():
 
     """
@@ -48,24 +45,22 @@ class Processor():
         self.rTime = 0
         self.cSwitchTime = cSwitchTime
         self.cSwitchAmt = 0
-
         self.workQ = workQ()
+        self.totalBurstCount = 0
+        self.totalBurst = 0
         self.procPool = []
         self.algorithm = algorithm
         self.cProc = None
-
-        self.totalBurst = 0
         self.startBurst = 0
         self.nBurst = 0
-
         self.donePool = []
-
         self.avgWait = 0
         self.avgTurnAround = 0
 
         self.tSlice = tSlice
         if(not (tSlice is None)):
-            self.nxtSlice = self.rTime + tSlice
+            #Init next time slice
+            self.nxtSlice = self.rTime + self.tSlice + (self.cSwitchTime / 2)
         else:
             self.nxtSlice = None
 
@@ -78,6 +73,7 @@ class Processor():
         NOTE: If cycles == -1, run till completion
     """
     def run(self, cycles):
+
         #If -1, run till completion
         if(cycles == -1):
             i = 0
@@ -106,10 +102,15 @@ class Processor():
                 turnAround += p.turnAround      #Increment turnAround time
 
             #Extract averages
-            wait = wait / len(self.donePool)
-            turnAround = turnAround / len(self.donePool)
+            wait = float(wait) / self.totalBurstCount
+            turnAround = float(turnAround) / self.totalBurstCount
+            wait += self.tSlice
+            turnAround += self.tSlice
+            turnAround += 3*self.cSwitchTime
             print("Avg wait time : {0}".format(wait))
             print("Avg turnAround time : {0}".format(turnAround))
+            print("cSwitchAmt : {0}".format(self.cSwitchAmt))
+
             return 0
 
         #Run for cycles amount of cycles
@@ -130,10 +131,11 @@ class Processor():
                         turnAround += p.turnAround      #Increment turnAround time
 
                     #Extract averages
-                    wait = wait / len(self.donePool)
-                    turnAround = turnAround / len(self.donePool)
+                    wait = float(wait) / self.totalBurstCount
+                    turnAround = float(turnAround) / self.totalBurstCount
                     print("Avg wait time : {0}".format(wait))
                     print("Avg turnAround time : {0}".format(turnAround))
+                    print("cSwitchAmt : {0}".format(self.cSwitchAmt))
 
                     return 0
                 print("\n===============================\n")
@@ -142,7 +144,6 @@ class Processor():
 
     """
     Does arithmitic to calculate the current burst and add it to the average.
-
     NOTE: YOU MUST TRACK START BURST AND LOG EVERY TIME A CONTEXT SWITCH OCCURS.
     """
     def logBurst(self):
@@ -160,6 +161,7 @@ class Processor():
         #Make sure proc is a process
         assert(isinstance(proc, Process))
         self.procPool.append(proc)
+        self.totalBurstCount += proc.burstCount
         return
 
 
@@ -190,9 +192,16 @@ class Processor():
 
         elif self.algorithm == "RR":
             if(self.rTime >= self.nxtSlice):
-                self.nxtSlice = self.rTime + self.tSlice
+                print("tSlice is up! rTime={0} >= nxtSlice={1}".format(self.rTime, self.tSlice))
+                print("tSlice = {0}".format(self.tSlice))
+
+                #Next time to pre-empt is now + the time slice + context switch time
+                self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
+                print("tSlice updates! rTime={0} <= nxtSlice={1}".format(self.rTime, self.nxtSlice))
+
                 return True
 
+        return False
 
 
 
@@ -218,7 +227,6 @@ class Processor():
         if(not (self.cProc is None)):
             self.cProc.step()
 
-
         self.__handle_FCFS()
         """
         #Call correct handler
@@ -241,7 +249,6 @@ class Processor():
     processors into the workQ and remove any !READY processors into procPool
     Then organize the workQ so the next processor is in front of the workQ
     based on the selected scheduling algorithm.
-
     I decided to do this in a seperate
     method to prevent bloating the scheduling methods.
     """
@@ -294,37 +301,105 @@ class Processor():
 
 
     """
+    Handle all the wait time logic for doing a context switch
+    with respect to waiting processes
+    """
+    def cleanCSwitch(self, time):
+
+        #Add time to wait time in workQ
+        for p in self.workQ.queue:
+            p.waitTime += time
+
+        rmList = []     #List to remove later to preserve loop iteration
+
+        #Calculate future time values and preform logic on
+        #Processes. This loop should ensure accuracy carried through
+        #events occuring during a context switch
+        for p in self.procPool:
+            #Factor context switch into wait
+            wait = p.IOtimeLeft - time
+
+            #Factor context switch into arrivalTime
+            arriv = p.arrivalTimeLeft - time
+
+            #We are arrived and became ready mid-context switch
+            if(wait <= 0 and p.isArrived()):
+                #Remove from procPool
+                rmList.append(p)
+                #Add to workQ
+                self.workQ.enqueu(p)
+                #Change to ready
+                p.stateChange("READY")
+                #add the overflow into the waitTime, reset IOtimeLeft
+                p.waitTime += abs(wait)
+                p.IOtimeLeft = p.IOtime
+
+            #We are arrived just blocked doing IO for whole contextSwitch
+            elif(p.isArrived()):
+                p.IOtimeLeft = wait
+
+            #Havent arrived
+            else:
+                #Arrived mid context switch
+                if(arriv <= 0):
+                    #Remove from procPool
+                    rmList.append(p)
+                    #Add to workQ
+                    self.workQ.enqueu(p)
+                    #Change to ready
+                    p.stateChange("READY")
+                    #Set arrived = True
+                    p.arrived = True
+                    #add overflow to waitTime
+                    p.waitTime += abs(arriv)
+
+                #Still waiting to arrive
+                else:
+                    p.arrivalTimeLeft = arriv
+
+        #Remove processes from procPool
+        for p in rmList:
+            self.procPool.remove(p)
+
+
+
+
+    """
     Preform a context switch with self.cProc for newProc argument
     Handles logic for if self.cProc is None.
-
     NOTE: FIX THE LOGIC FOR THE CONTEXT SWITCH TIME
     """
     def contextSwitch(self, newProc):
         assert(isinstance(newProc, Process))
         #Dont log on initial context switch, Handle the calculation for cSwitchTime
-        if(not (self.cProc is None)):
+        if(not (self.cProc is None) and not self.cProc.isFinished()):
+            #Clean up context switch logic
+            self.rTime += (self.cSwitchTime) - 1
+            self.cProc.waitTime
+            self.cleanCSwitch((self.cSwitchTime) - 1)
+
             self.logBurst()
-            self.procPool.append(self.cProc)
-            self.rTime += self.cSwitchTime / 2
-            # Add this time to the waitTime of every READY process
-            # TODO WHAT IF A PROCESS BECOMES READY WITHIN THE TIME OF
-            # THIS CONTEXT SWITCH
-            for p in self.workQ.queue:
-                p.waitTime += self.cSwitchTime / 2
+            #Proc still wants to run, change to ready and put in workQ
+            if(self.cProc.state == "RUNNING"):
+                self.cProc.stateChange("READY")
+                self.workQ.enqueu(self.cProc)
+            else:
+                self.procPool.append(self.cProc)
+
         else:
-            #Do the same as above only with a full cSwitchTime
-            self.rTime += self.cSwitchTime
-            for p in self.workQ.queue:
-                p.waitTime += self.cSwitchTime
+            #Clean up context switch logic
+            #Here we are just loading a process
+            self.rTime += (self.cSwitchTime / 2) - 1
+            self.cleanCSwitch((self.cSwitchTime / 2) - 1)
 
 
         #Load new process, Change state, Adjust wait time
-
         self.cProc = newProc                    #   LOAD NEW
-        self.cProc.waitTime += self.cSwitchTime #   IS THIS CORRECT ? FIXME
         self.cProc.stateChange("RUNNING")       #   CHANGE STATE
         self.startBurst = self.rTime            #   Log the start of a burst
-
+        self.cProc.waitTime -= 1                #   Take into account proc.step() adding
+                                                #     -> +1 to the wait time
+                                                #
         self.cSwitchAmt += 1                    #   Add a context switch to total
 
 
@@ -367,7 +442,6 @@ class Processor():
         #
         elif(self.cProc.state == "RUNNING"):
             if(self.procReady()):
-                self.procPool.append(self.cProc)
                 p = self.workQ.dequeue()
                 self.contextSwitch(p)
 
@@ -395,7 +469,7 @@ class Processor():
 
             #No next proc, just pass.
             else:
-                pass
+                self.cProc = None
 
         else:
             self.qprint()
@@ -457,7 +531,10 @@ class Processor():
 
     def __str__(self):
         s = "PROC INFO:\ncSwitchTime : {0} ms\nRunTime : {1} ms\nworkQ Size : {2} processes\n".format(self.cSwitchTime, self.rTime, self.workQ.size()) + \
-            "procPool Size : {0} processes\nalgorithm : {1}\ncProc : {2}".format(len(self.procPool), self.algorithm, self.cProc)
+            "procPool Size : {0} processes\nalgorithm : {1}\ncProc : {2}\n".format(len(self.procPool), self.algorithm, self.cProc)
+        if( not (self.tSlice is None)):
+            s += "nxtSlice : {0} ms".format(self.nxtSlice)
+
         return s
 
 ################################################################################
@@ -468,25 +545,19 @@ Class representation of a process. This isn't going to do much, basically just
 a store for meta data and a way to keep track of which process is running. If we
 wanted to analyze memory footprints and such we could implement more here and
 make the process more interactive.
-
 Attributes: - Label
             - State | • READY: in the ready queue, ready to use the CPU
                     | • RUNNING: actively using the CPU
                     | • BLOCKED: blocked on I/O
                     | • FINISHED: Done executings
-
                 =SHOULD INIT TO READY STATE????=
             - Arrived (Boolean to keep track of arrival conditions)
-
             - Arrival Time
-
             - Burst Time Total
             --Burst Time Left
             - Burst Count
-
             - I/O Time Total
             --I/O Time Left
-
             --waitTime
             --turnAround
 """
@@ -522,6 +593,11 @@ class Process():
     def isReady(self):
         return self.state == "READY"
 
+
+    def isArrived(self):
+        return self.arrivalTimeLeft <= 0
+
+    #Am I finished?
     def isFinished(self):
         return self.state == "FINISHED"
 
@@ -568,6 +644,7 @@ class Process():
             self.burstCount -= 1
             if(self.burstCount == 0):
                 self.state = "FINISHED"
+
             else:
                 self.state = "BLOCKED"
         elif(self.IOtimeLeft <= 0 and self.state == "BLOCKED"):
@@ -581,13 +658,12 @@ class Process():
 
 
     def __str__(self):
-        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstTime: {3} | burstCount: {4}) (IOtimeLeft: {5} | IOtime: {6}) (waitTime : {7} arrivalTime : {8})\n".format(self.label, self.state, self.burstTimeLeft, self.burstTime, self.burstCount, self.IOtimeLeft, self.IOtime, self.waitTime, self.arrivalTime)
+        return "Label: {0} | State: {1} (burstTimeLeft: {2} | burstTime: {3} | burstCount: {4}) (IOtimeLeft: {5} | IOtime: {6}) (waitTime : {7} arrivalTime : {8})".format(self.label, self.state, self.burstTimeLeft, self.burstTime, self.burstCount, self.IOtimeLeft, self.IOtime, self.waitTime, self.arrivalTime)
 ################################################################################
 
 
 """
 workQ class which uses a list as an underlying implemetation.
-
 Attributes: workQ -- List representing the Queue
 """
 class workQ():

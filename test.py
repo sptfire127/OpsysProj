@@ -1,33 +1,30 @@
-#Test suite for project
 from classes import *
 from pprint import pprint
 import random
 
-
-
 def main():
-    myProccessor = Processor(cSwitchTime=10, algorithm="SRT")
+
+    myProccessor = Processor(cSwitchTime=4, algorithm="FCFS")
+
+    test = open("test.txt", "r+")
+
+    for line in test:
+        if(line[0] != "#"):
+            line = line.replace("\n", "")
+            line = line.split("|")
+            label = line[0]
+            arrivalTime = int(line[1])
+            burst = int(line[2])
+            bCount = int(line[3])
+            ioTime = int(line[4])
+            t = Process(label, arrivalTime, burst, bCount, ioTime)
+            myProccessor.addProc(t)
+            myProccessor.totalBurstCount += bCount
+
+    print(myProccessor.totalBurst)
 
 
-    for i in range(1, 6):
-        #Set up initial
-        q = Process(label=i, arrival=i, burst=random.randint(25, 30), burstCount=5, IOtime=10)
-        print(q)
-        myProccessor.addProc(q)
-    q = Process(label=9, arrival=0, burst=5, burstCount=5, IOtime=10)
-    myProccessor.addProc(q)
-    
     myProccessor.run(-1)
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
