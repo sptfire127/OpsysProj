@@ -382,16 +382,11 @@ class Processor():
     def contextSwitch(self, newProc):
         assert(isinstance(newProc, Process))
 
-
-
         #Dont log on initial context switch, Handle the calculation for cSwitchTime
         if(not (self.cProc is None) and not self.cProc.isFinished()):
             #Clean up context switch logic and wriqte output
-
-
             self.cSwitchAmt += 1                    #   Add a context switch to total
             self.rTime += (self.cSwitchTime)
-            self.cProc.waitTime
             self.cleanCSwitch((self.cSwitchTime))
 
             self.logBurst()
@@ -400,7 +395,17 @@ class Processor():
                 self.cProc.stateChange("READY")
                 self.workQ.enqueu(self.cProc)
             else:
+                #Our state must be blocked
                 self.procPool.append(self.cProc)
+                self.cProc.IOtimeLeft -= (self.cSwitchTime/2) - 1
+
+        #Our current process is finished
+        elif(not (self.cProc is None)):
+            self.cSwitchAmt += 1                    #   Add a context switch to total
+            self.rTime += (self.cSwitchTime)
+            self.cleanCSwitch((self.cSwitchTime))
+            self.logBurst()
+
 
         else:
             #Clean up context switch logic
@@ -445,9 +450,14 @@ class Processor():
         #If cProc became blocked (from calling cProc.step()), swap it out for new process in workQ
         #CONTEXT SWITCH
         elif(self.cProc.state == "BLOCKED" and (not self.workQ.isEmpty())):
-            #Next time to pre-empt is now + the time slice + context switch time
-            writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
-            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.IOtimeLeft + int(self.rTime) + int(self.cSwitchTime/2), self.getQStr()))
+            if(self.cProc.burstCount != 1):
+                #Next time to pre-empt is now + the time slice + context switch time
+                writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
+            else:
+                #Next time to pre-empt is now + the time slice + context switch time
+                writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} burst to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
+
+            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label, int(self.cProc.IOtimeLeft + (self.rTime) + (self.cSwitchTime/2)), self.getQStr()))
 
             self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
             p = self.workQ.dequeue()
@@ -509,7 +519,6 @@ class Processor():
                     self.rTime += self.cSwitchTime / 2
                     self.cleanCSwitch(self.cSwitchTime / 2)
                     self.cSwitchAmt += 1/2
-
                     self.cProc = None
 
         else:
