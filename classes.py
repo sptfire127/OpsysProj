@@ -35,8 +35,6 @@ Attributes:
     tSlice          -- time slice for round robin algorithm
     nxtSlice        -- Next time to pre-empt process
 """
-
-
 class Processor():
 
     """
@@ -85,8 +83,8 @@ class Processor():
 
             while(not self.finished()):
                 print("\n==============Execution {0}==============\n".format(i))
-                print(self)                 #Print out processor state
-                self.qprint()               #Print out processor queue's
+                #print(self)                 #Print out processor state
+                #self.qprint()               #Print out processor queue's
                 self.step()                 #Step the processor
                 if(self.finished()):        #If we finish, then check
                     print("\n===============================\n")
@@ -225,6 +223,7 @@ class Processor():
             self.cProc.step()
 
         self.__handle_FCFS()
+
         """
         #Call correct handler
         if(self.algorithm == "FCFS"):
@@ -274,8 +273,6 @@ class Processor():
                         #Remove, Print, then re-add
                         k = self.workQ.dequeue()
                         writeOutput("time {0}ms: Process {1} completed I/O and will preempt {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.getQStr()))
-                        self.rTime -= 1         #This is a hack to get output to match
-
                         p.arrivalTimeLeft = -25 #Aritrary constant
                         self.workQ.enqueu(k)
                     else:
@@ -416,7 +413,9 @@ class Processor():
             #Proc still wants to run, change to ready and put in workQ
             if(self.cProc.state == "RUNNING"):
                 self.cProc.stateChange("READY")
+                self.cProc.burstTimeLeft
                 self.workQ.enqueu(self.cProc)
+                self.workQ.step(self.algorithm)
             else:
                 #Our state must be blocked
                 #Hackz bc output
