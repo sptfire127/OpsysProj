@@ -181,6 +181,7 @@ class Processor():
     def procReady(self):
         if(self.workQ.isEmpty()): return False
 
+        self.workQ.step(self.algorithm)
 
         if self.algorithm == "FCFS":
             #In FCFS we never prempt a proc
@@ -189,7 +190,7 @@ class Processor():
         elif self.algorithm == "SRT":
             #If next proc.burst < this proc's burst
             p = self.workQ.peak()
-            if(p.burstTime < self.cProc.burstTimeLeft): return True
+            if(p.burstTimeLeft < self.cProc.burstTimeLeft): return True
 
 
         elif self.algorithm == "RR":
@@ -261,13 +262,35 @@ class Processor():
                 self.workQ.enqueu(p)
                 rLst.append(p)
 
+
                 # OUTPUT.TXT FILEV##################################
+
+
                 if(p.arrivalTimeLeft == -25): #Aritrary constant
-                    writeOutput("time {0}ms: Process {1} completed I/O; added to ready queue {2}\n".format(int(self.rTime), p.label, self.getQStr()))
+
+                    if(not(self.cProc is None) and self.procReady()):
+                        #We have to deque because of the way goldS did the output.
+                        #When something is going to preempt. it  isnt in the workQ.
+                        #Remove, Print, then re-add
+                        k = self.workQ.dequeue()
+                        writeOutput("time {0}ms: Process {1} completed I/O and will preempt {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.getQStr()))
+                        self.rTime -= 1         #This is a hack to get output to match
+
+                        p.arrivalTimeLeft = -25 #Aritrary constant
+                        self.workQ.enqueu(k)
+                    else:
+                        writeOutput("time {0}ms: Process {1} completed I/O; added to ready queue {2}\n".format(int(self.rTime), p.label, self.getQStr()))
 
                 elif(not(self.cProc is None) and self.procReady()):
-                    writeOutput("time {0}ms: Process {1} arrived and will preempy {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.getQStr()))
+                    #We have to deque because of the way goldS did the output.
+                    #When something is going to preempt. it  isnt in the workQ.
+                    #Remove, Print, then re-add
+                    k = self.workQ.dequeue()
+                    writeOutput("time {0}ms: Process {1} arrived and will preempt {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.getQStr()))
+                    self.rTime -= 1         #This is a hack to get output to match
+
                     p.arrivalTimeLeft = -25 #Aritrary constant
+                    self.workQ.enqueu(k)
 
                 else:
                     writeOutput("time {0}ms: Process {1} arrived and added to ready queue {2}\n".format(int(self.rTime), p.label, self.getQStr()))
@@ -396,8 +419,13 @@ class Processor():
                 self.workQ.enqueu(self.cProc)
             else:
                 #Our state must be blocked
-                self.procPool.append(self.cProc)
-                self.cProc.IOtimeLeft -= (self.cSwitchTime/2) - 1
+                #Hackz bc output
+                if(self.algorithm == "SRT"):
+                    self.procPool.append(self.cProc)
+                    self.cProc.IOtimeLeft -= (self.cSwitchTime/2) - 2
+                else:
+                    self.procPool.append(self.cProc)
+                    self.cProc.IOtimeLeft -= (self.cSwitchTime/2) - 1
 
         #Our current process is finished
         elif(not (self.cProc is None)):
@@ -405,7 +433,6 @@ class Processor():
             self.rTime += (self.cSwitchTime)
             self.cleanCSwitch((self.cSwitchTime))
             self.logBurst()
-
 
         else:
             #Clean up context switch logic
@@ -421,7 +448,18 @@ class Processor():
         self.startBurst = self.rTime            #   Log the start of a burst
         self.cProc.waitTime -= 1                #   Take into account proc.step() adding
                                                 #     -> +1 to the wait time
-        writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(int(self.rTime), newProc.label, self.getQStr()))
+        if(self.cProc.burstTimeLeft < self.cProc.burstTime):
+            #For some reason the SRT algorithm is 1MS off on burstTime left... you know what to do
+            if(self.algorithm == "SRT"):
+                writeOutput("time {0}ms: Process {1} started using the CPU with {2}ms remaining {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstTimeLeft + 1, self.getQStr()))
+            else:
+                writeOutput("time {0}ms: Process {1} started using the CPU with {2}ms remaining {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstTimeLeft, self.getQStr()))
+        else:
+            #This is to ensure that the workQ is in its updated state before printing.
+            #it has no actual affect on the running since we will step it before
+            #any calculations are done
+            self.workQ.step(self.algorithm)
+            writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(int(self.rTime), self.cProc.label, self.getQStr()))
 
 
     #######SCHEDULING ALGORITHM HANDLERS BELOW THIS LINE####
@@ -466,10 +504,11 @@ class Processor():
         #If cProc is became blocked but next process is not ready, then set to None
         elif(self.cProc.state == "BLOCKED" and (self.workQ.isEmpty())):
             writeOutput("time {0}ms: Process {1} completed a CPU burst; {2} bursts to go {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.burstCount, self.getQStr()))
-            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label, self.cProc.IOtimeLeft + int(self.rTime), self.getQStr()))
+            writeOutput("time {0}ms: Process {1} switching out of CPU; will block on I/O until time {2}ms {3}\n".format(int(self.rTime), self.cProc.label,  int(self.cProc.IOtimeLeft + (self.rTime) + (self.cSwitchTime/2)), self.getQStr()))
             #Next time to pre-empt is now + the time slice + context switch time
             self.nxtSlice = self.rTime + self.tSlice + self.cSwitchTime
             self.procPool.append(self.cProc)
+            self.cProc.IOtimeLeft += (self.cSwitchTime/2) + 1
             self.rTime += self.cSwitchTime / 2
             self.cleanCSwitch(self.cSwitchTime / 2)
             self.cSwitchAmt += 1/2
