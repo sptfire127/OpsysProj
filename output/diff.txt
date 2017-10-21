@@ -1,0 +1,261 @@
+time 0ms: Simulator started for FCFS [Q <empty>]                time 0ms: Simulator started for FCFS [Q <empty>]
+time 0ms: Process A arrived and added to ready queue [Q A]      time 0ms: Process A arrived and added to ready queue [Q A]
+time 0ms: Process B arrived and added to ready queue [Q A B]    time 0ms: Process B arrived and added to ready queue [Q A B]
+time 4ms: Process A started using the CPU [Q B]                 time 4ms: Process A started using the CPU [Q B]
+time 172ms: Process A completed a CPU burst; 4 bursts to go [   time 172ms: Process A completed a CPU burst; 4 bursts to go [
+time 172ms: Process A switching out of CPU; will block on I/O   time 172ms: Process A switching out of CPU; will block on I/O
+time 180ms: Process B started using the CPU [Q <empty>]         time 180ms: Process B started using the CPU [Q <empty>]
+time 190ms: Process C arrived and added to ready queue [Q C]    time 190ms: Process C arrived and added to ready queue [Q C]
+time 250ms: Process D arrived and added to ready queue [Q C D   time 250ms: Process D arrived and added to ready queue [Q C D
+time 463ms: Process A completed I/O; added to ready queue [Q  | time 466ms: Process A completed I/O; added to ready queue [Q 
+time 565ms: Process B terminated [Q C D A]                      time 565ms: Process B terminated [Q C D A]
+time 573ms: Process C started using the CPU [Q D A]           | time 568ms: Process C started using the CPU [Q D A]
+time 670ms: Process C completed a CPU burst; 4 bursts to go [ | time 665ms: Process C completed a CPU burst; 4 bursts to go [
+time 670ms: Process C switching out of CPU; will block on I/O | time 665ms: Process C switching out of CPU; will block on I/O
+time 678ms: Process D started using the CPU [Q A]             | time 673ms: Process D started using the CPU [Q A]
+time 2448ms: Process D completed a CPU burst; 1 burst to go [ | time 2443ms: Process D completed a CPU burst; 1 bursts to go 
+time 2448ms: Process D switching out of CPU; will block on I/ | time 2443ms: Process D switching out of CPU; will block on I/
+time 2456ms: Process A started using the CPU [Q <empty>]      | time 2451ms: Process A started using the CPU [Q <empty>]
+time 2624ms: Process A completed a CPU burst; 3 bursts to go  | time 2619ms: Process A completed a CPU burst; 3 bursts to go 
+time 2624ms: Process A switching out of CPU; will block on I/ | time 2619ms: Process A switching out of CPU; will block on I/
+time 2915ms: Process A completed I/O; added to ready queue [Q | time 2905ms: Process A completed I/O; added to ready queue [Q
+time 2919ms: Process A started using the CPU [Q <empty>]      | time 2909ms: Process A started using the CPU [Q <empty>]
+time 3087ms: Process A completed a CPU burst; 2 bursts to go  | time 3077ms: Process A completed a CPU burst; 2 bursts to go 
+time 3087ms: Process A switching out of CPU; will block on I/ | time 3077ms: Process A switching out of CPU; will block on I/
+time 3173ms: Process C completed I/O; added to ready queue [Q | time 3171ms: Process C completed I/O; added to ready queue [Q
+time 3177ms: Process C started using the CPU [Q <empty>]      | time 3175ms: Process C started using the CPU [Q <empty>]
+time 3274ms: Process C completed a CPU burst; 3 bursts to go  | time 3272ms: Process C completed a CPU burst; 3 bursts to go 
+time 3274ms: Process C switching out of CPU; will block on I/ | time 3272ms: Process C switching out of CPU; will block on I/
+time 3274ms: Process D completed I/O; added to ready queue [Q | time 3280ms: Process D started using the CPU [Q <empty>]
+time 3282ms: Process D started using the CPU [Q <empty>]      | time 3363ms: Process A completed I/O; added to ready queue [Q
+time 3378ms: Process A completed I/O; added to ready queue [Q | time 5050ms: Process D terminated [Q A]
+time 5052ms: Process D terminated [Q A]                       | time 5053ms: Process A started using the CPU [Q <empty>]
+time 5060ms: Process A started using the CPU [Q <empty>]      | time 5221ms: Process A completed a CPU burst; 1 bursts to go 
+time 5228ms: Process A completed a CPU burst; 1 burst to go [ | time 5221ms: Process A switching out of CPU; will block on I/
+time 5228ms: Process A switching out of CPU; will block on I/ | time 5507ms: Process A completed I/O; added to ready queue [Q
+time 5519ms: Process A completed I/O; added to ready queue [Q | time 5511ms: Process A started using the CPU [Q <empty>]
+time 5523ms: Process A started using the CPU [Q <empty>]      | time 5679ms: Process A terminated [Q <empty>]
+time 5691ms: Process A terminated [Q <empty>]                 | time 5770ms: Process C completed I/O; added to ready queue [Q
+time 5777ms: Process C completed I/O; added to ready queue [Q | time 5774ms: Process C started using the CPU [Q <empty>]
+time 5781ms: Process C started using the CPU [Q <empty>]      | time 5871ms: Process C completed a CPU burst; 2 bursts to go 
+time 5878ms: Process C completed a CPU burst; 2 bursts to go  | time 5871ms: Process C switching out of CPU; will block on I/
+time 5878ms: Process C switching out of CPU; will block on I/ | time 8369ms: Process C completed I/O; added to ready queue [Q
+time 8381ms: Process C completed I/O; added to ready queue [Q | time 8373ms: Process C started using the CPU [Q <empty>]
+time 8385ms: Process C started using the CPU [Q <empty>]      | time 8470ms: Process C completed a CPU burst; 1 bursts to go 
+time 8482ms: Process C completed a CPU burst; 1 burst to go [ | time 8470ms: Process C switching out of CPU; will block on I/
+time 8482ms: Process C switching out of CPU; will block on I/ | time 10968ms: Process C completed I/O; added to ready queue [
+time 10985ms: Process C completed I/O; added to ready queue [ | time 10972ms: Process C started using the CPU [Q <empty>]
+time 10989ms: Process C started using the CPU [Q <empty>]     | time 11069ms: Process C terminated [Q <empty>]
+time 11086ms: Process C terminated [Q <empty>]                | time 11069ms: Simulator ended for FCFS
+time 11090ms: Simulator ended for FCFS                        <
+                                                              <
+time 0ms: Simulator started for SRT [Q <empty>]                 time 0ms: Simulator started for SRT [Q <empty>]
+time 0ms: Process A arrived and added to ready queue [Q A]      time 0ms: Process A arrived and added to ready queue [Q A]
+time 0ms: Process B arrived and added to ready queue [Q A B]    time 0ms: Process B arrived and added to ready queue [Q A B]
+time 4ms: Process A started using the CPU [Q B]                 time 4ms: Process A started using the CPU [Q B]
+time 172ms: Process A completed a CPU burst; 4 bursts to go [   time 172ms: Process A completed a CPU burst; 4 bursts to go [
+time 172ms: Process A switching out of CPU; will block on I/O   time 172ms: Process A switching out of CPU; will block on I/O
+time 180ms: Process B started using the CPU [Q <empty>]         time 180ms: Process B started using the CPU [Q <empty>]
+time 190ms: Process C arrived and will preempt B [Q <empty>]  | time 190ms: Process C arrived and will preempy B [Q C]
+time 198ms: Process C started using the CPU [Q B]             | time 199ms: Process C started using the CPU [Q B]
+time 250ms: Process D arrived and added to ready queue [Q B D   time 250ms: Process D arrived and added to ready queue [Q B D
+time 295ms: Process C completed a CPU burst; 4 bursts to go [ | time 296ms: Process C completed a CPU burst; 4 bursts to go [
+time 295ms: Process C switching out of CPU; will block on I/O | time 296ms: Process C switching out of CPU; will block on I/O
+time 303ms: Process B started using the CPU with 375ms remain | time 304ms: Process B started using the CPU [Q D]
+time 463ms: Process A completed I/O and will preempt B [Q D]  | time 466ms: Process A completed I/O; added to ready queue [Q 
+time 471ms: Process A started using the CPU [Q B D]           | time 475ms: Process A started using the CPU [Q D B]
+time 639ms: Process A completed a CPU burst; 3 bursts to go [ | time 643ms: Process A completed a CPU burst; 3 bursts to go [
+time 639ms: Process A switching out of CPU; will block on I/O | time 643ms: Process A switching out of CPU; will block on I/O
+time 647ms: Process B started using the CPU with 215ms remain | time 651ms: Process B started using the CPU [Q D]
+time 862ms: Process B terminated [Q D]                          time 862ms: Process B terminated [Q D]
+time 870ms: Process D started using the CPU [Q <empty>]       | time 865ms: Process D started using the CPU [Q <empty>]
+time 930ms: Process A completed I/O and will preempt D [Q <em | time 937ms: Process A completed I/O; added to ready queue [Q 
+time 938ms: Process A started using the CPU [Q D]             | time 946ms: Process A started using the CPU [Q D]
+time 1106ms: Process A completed a CPU burst; 2 bursts to go  | time 1114ms: Process A completed a CPU burst; 2 bursts to go 
+time 1106ms: Process A switching out of CPU; will block on I/ | time 1114ms: Process A switching out of CPU; will block on I/
+time 1114ms: Process D started using the CPU with 1710ms rema | time 1122ms: Process D started using the CPU [Q <empty>]
+time 1397ms: Process A completed I/O and will preempt D [Q <e | time 1408ms: Process A completed I/O; added to ready queue [Q
+time 1405ms: Process A started using the CPU [Q D]            | time 1417ms: Process A started using the CPU [Q D]
+time 1573ms: Process A completed a CPU burst; 1 burst to go [ | time 1585ms: Process A completed a CPU burst; 1 bursts to go 
+time 1573ms: Process A switching out of CPU; will block on I/ | time 1585ms: Process A switching out of CPU; will block on I/
+time 1581ms: Process D started using the CPU with 1427ms rema | time 1593ms: Process D started using the CPU [Q <empty>]
+time 1864ms: Process A completed I/O and will preempt D [Q <e | time 1879ms: Process A completed I/O; added to ready queue [Q
+time 1872ms: Process A started using the CPU [Q D]            | time 1888ms: Process A started using the CPU [Q D]
+time 2040ms: Process A terminated [Q D]                       | time 2056ms: Process A terminated [Q D]
+time 2048ms: Process D started using the CPU with 1144ms rema | time 2059ms: Process D started using the CPU [Q <empty>]
+time 2798ms: Process C completed I/O and will preempt D [Q <e | time 2802ms: Process C completed I/O; added to ready queue [Q
+time 2806ms: Process C started using the CPU [Q D]            | time 2811ms: Process C started using the CPU [Q D]
+time 2903ms: Process C completed a CPU burst; 3 bursts to go  | time 2908ms: Process C completed a CPU burst; 3 bursts to go 
+time 2903ms: Process C switching out of CPU; will block on I/ | time 2908ms: Process C switching out of CPU; will block on I/
+time 2911ms: Process D started using the CPU with 394ms remai | time 2916ms: Process D started using the CPU [Q <empty>]
+time 3305ms: Process D completed a CPU burst; 1 burst to go [ | time 3295ms: Process D completed a CPU burst; 1 bursts to go 
+time 3305ms: Process D switching out of CPU; will block on I/ | time 3295ms: Process D switching out of CPU; will block on I/
+time 4131ms: Process D completed I/O; added to ready queue [Q | time 4116ms: Process D completed I/O; added to ready queue [Q
+time 4135ms: Process D started using the CPU [Q <empty>]      | time 4120ms: Process D started using the CPU [Q <empty>]
+time 5406ms: Process C completed I/O and will preempt D [Q <e | time 5414ms: Process C completed I/O; added to ready queue [Q
+time 5414ms: Process C started using the CPU [Q D]            | time 5423ms: Process C started using the CPU [Q D]
+time 5511ms: Process C completed a CPU burst; 2 bursts to go  | time 5520ms: Process C completed a CPU burst; 2 bursts to go 
+time 5511ms: Process C switching out of CPU; will block on I/ | time 5520ms: Process C switching out of CPU; will block on I/
+time 5519ms: Process D started using the CPU with 499ms remai | time 5528ms: Process D started using the CPU [Q <empty>]
+time 6018ms: Process D terminated [Q <empty>]                 | time 6003ms: Process D terminated [Q <empty>]
+time 8014ms: Process C completed I/O; added to ready queue [Q | time 8026ms: Process C completed I/O; added to ready queue [Q
+time 8018ms: Process C started using the CPU [Q <empty>]      | time 8030ms: Process C started using the CPU [Q <empty>]
+time 8115ms: Process C completed a CPU burst; 1 burst to go [ | time 8127ms: Process C completed a CPU burst; 1 bursts to go 
+time 8115ms: Process C switching out of CPU; will block on I/ | time 8127ms: Process C switching out of CPU; will block on I/
+time 10618ms: Process C completed I/O; added to ready queue [ | time 10625ms: Process C completed I/O; added to ready queue [
+time 10622ms: Process C started using the CPU [Q <empty>]     | time 10629ms: Process C started using the CPU [Q <empty>]
+time 10719ms: Process C terminated [Q <empty>]                | time 10726ms: Process C terminated [Q <empty>]
+time 10723ms: Simulator ended for SRT                         | time 10726ms: Simulator ended for SRT
+                                                              <
+time 0ms: Simulator started for RR [Q <empty>]                  time 0ms: Simulator started for RR [Q <empty>]
+time 0ms: Process A arrived and added to ready queue [Q A]      time 0ms: Process A arrived and added to ready queue [Q A]
+time 0ms: Process B arrived and added to ready queue [Q A B]    time 0ms: Process B arrived and added to ready queue [Q A B]
+time 4ms: Process A started using the CPU [Q B]                 time 4ms: Process A started using the CPU [Q B]
+time 74ms: Time slice expired; process A preempted with 98ms    time 74ms: Time slice expired; process A preempted with 98ms 
+time 82ms: Process B started using the CPU [Q A]                time 82ms: Process B started using the CPU [Q A]
+time 152ms: Time slice expired; process B preempted with 315m   time 152ms: Time slice expired; process B preempted with 315m
+time 160ms: Process A started using the CPU with 98ms remaini | time 160ms: Process A started using the CPU [Q B]
+time 190ms: Process C arrived and added to ready queue [Q B C   time 190ms: Process C arrived and added to ready queue [Q B C
+time 230ms: Time slice expired; process A preempted with 28ms   time 230ms: Time slice expired; process A preempted with 28ms
+time 238ms: Process B started using the CPU with 315ms remain | time 238ms: Process B started using the CPU [Q C A]
+time 250ms: Process D arrived and added to ready queue [Q C A   time 250ms: Process D arrived and added to ready queue [Q C A
+time 308ms: Time slice expired; process B preempted with 245m   time 308ms: Time slice expired; process B preempted with 245m
+time 316ms: Process C started using the CPU [Q A D B]           time 316ms: Process C started using the CPU [Q A D B]
+time 386ms: Time slice expired; process C preempted with 27ms   time 386ms: Time slice expired; process C preempted with 27ms
+time 394ms: Process A started using the CPU with 28ms remaini | time 394ms: Process A started using the CPU [Q D B C]
+time 422ms: Process A completed a CPU burst; 4 bursts to go [   time 422ms: Process A completed a CPU burst; 4 bursts to go [
+time 422ms: Process A switching out of CPU; will block on I/O   time 422ms: Process A switching out of CPU; will block on I/O
+time 430ms: Process D started using the CPU [Q B C]             time 430ms: Process D started using the CPU [Q B C]
+time 500ms: Time slice expired; process D preempted with 1700   time 500ms: Time slice expired; process D preempted with 1700
+time 508ms: Process B started using the CPU with 245ms remain | time 508ms: Process B started using the CPU [Q C D]
+time 578ms: Time slice expired; process B preempted with 175m   time 578ms: Time slice expired; process B preempted with 175m
+time 586ms: Process C started using the CPU with 27ms remaini | time 586ms: Process C started using the CPU [Q D B]
+time 613ms: Process C completed a CPU burst; 4 bursts to go [   time 613ms: Process C completed a CPU burst; 4 bursts to go [
+time 613ms: Process C switching out of CPU; will block on I/O   time 613ms: Process C switching out of CPU; will block on I/O
+time 621ms: Process D started using the CPU with 1700ms remai | time 621ms: Process D started using the CPU [Q B]
+time 691ms: Time slice expired; process D preempted with 1630   time 691ms: Time slice expired; process D preempted with 1630
+time 699ms: Process B started using the CPU with 175ms remain | time 699ms: Process B started using the CPU [Q D]
+time 713ms: Process A completed I/O; added to ready queue [Q  | time 716ms: Process A completed I/O; added to ready queue [Q 
+time 769ms: Time slice expired; process B preempted with 105m   time 769ms: Time slice expired; process B preempted with 105m
+time 777ms: Process D started using the CPU with 1630ms remai | time 777ms: Process D started using the CPU [Q A B]
+time 847ms: Time slice expired; process D preempted with 1560   time 847ms: Time slice expired; process D preempted with 1560
+time 855ms: Process A started using the CPU [Q B D]             time 855ms: Process A started using the CPU [Q B D]
+time 925ms: Time slice expired; process A preempted with 98ms   time 925ms: Time slice expired; process A preempted with 98ms
+time 933ms: Process B started using the CPU with 105ms remain | time 933ms: Process B started using the CPU [Q D A]
+time 1003ms: Time slice expired; process B preempted with 35m   time 1003ms: Time slice expired; process B preempted with 35m
+time 1011ms: Process D started using the CPU with 1560ms rema | time 1011ms: Process D started using the CPU [Q A B]
+time 1081ms: Time slice expired; process D preempted with 149   time 1081ms: Time slice expired; process D preempted with 149
+time 1089ms: Process A started using the CPU with 98ms remain | time 1089ms: Process A started using the CPU [Q B D]
+time 1159ms: Time slice expired; process A preempted with 28m   time 1159ms: Time slice expired; process A preempted with 28m
+time 1167ms: Process B started using the CPU with 35ms remain | time 1167ms: Process B started using the CPU [Q D A]
+time 1202ms: Process B terminated [Q D A]                       time 1202ms: Process B terminated [Q D A]
+time 1210ms: Process D started using the CPU with 1490ms rema | time 1205ms: Process D started using the CPU [Q A]
+time 1280ms: Time slice expired; process D preempted with 142 | time 1280ms: Time slice expired; process D preempted with 141
+time 1288ms: Process A started using the CPU with 28ms remain | time 1288ms: Process A started using the CPU [Q D]
+time 1316ms: Process A completed a CPU burst; 3 bursts to go    time 1316ms: Process A completed a CPU burst; 3 bursts to go 
+time 1316ms: Process A switching out of CPU; will block on I/   time 1316ms: Process A switching out of CPU; will block on I/
+time 1324ms: Process D started using the CPU with 1420ms rema | time 1324ms: Process D started using the CPU [Q <empty>]
+time 1394ms: Time slice expired; no preemption because ready  | time 1610ms: Process A completed I/O; added to ready queue [Q
+time 1464ms: Time slice expired; no preemption because ready  | time 1611ms: Time slice expired; process D preempted with 112
+time 1534ms: Time slice expired; no preemption because ready  | time 1619ms: Process A started using the CPU [Q D]
+time 1604ms: Time slice expired; no preemption because ready  | time 1689ms: Time slice expired; process A preempted with 98m
+time 1607ms: Process A completed I/O; added to ready queue [Q | time 1697ms: Process D started using the CPU [Q A]
+time 1674ms: Time slice expired; process D preempted with 107 | time 1767ms: Time slice expired; process D preempted with 105
+time 1682ms: Process A started using the CPU [Q D]            | time 1775ms: Process A started using the CPU [Q D]
+time 1752ms: Time slice expired; process A preempted with 98m | time 1845ms: Time slice expired; process A preempted with 28m
+time 1760ms: Process D started using the CPU with 1070ms rema | time 1853ms: Process D started using the CPU [Q A]
+time 1830ms: Time slice expired; process D preempted with 100 | time 1923ms: Time slice expired; process D preempted with 988
+time 1838ms: Process A started using the CPU with 98ms remain | time 1931ms: Process A started using the CPU [Q D]
+time 1908ms: Time slice expired; process A preempted with 28m | time 1959ms: Process A completed a CPU burst; 2 bursts to go 
+time 1916ms: Process D started using the CPU with 1000ms rema | time 1959ms: Process A switching out of CPU; will block on I/
+time 1986ms: Time slice expired; process D preempted with 930 | time 1967ms: Process D started using the CPU [Q <empty>]
+time 1994ms: Process A started using the CPU with 28ms remain | time 2253ms: Process A completed I/O; added to ready queue [Q
+time 2022ms: Process A completed a CPU burst; 2 bursts to go  | time 2254ms: Time slice expired; process D preempted with 701
+time 2022ms: Process A switching out of CPU; will block on I/ | time 2262ms: Process A started using the CPU [Q D]
+time 2030ms: Process D started using the CPU with 930ms remai | time 2332ms: Time slice expired; process A preempted with 98m
+time 2100ms: Time slice expired; no preemption because ready  | time 2340ms: Process D started using the CPU [Q A]
+time 2170ms: Time slice expired; no preemption because ready  | time 2410ms: Time slice expired; process D preempted with 631
+time 2240ms: Time slice expired; no preemption because ready  | time 2418ms: Process A started using the CPU [Q D]
+time 2310ms: Time slice expired; no preemption because ready  | time 2488ms: Time slice expired; process A preempted with 28m
+time 2313ms: Process A completed I/O; added to ready queue [Q | time 2496ms: Process D started using the CPU [Q A]
+time 2380ms: Time slice expired; process D preempted with 580 | time 2566ms: Time slice expired; process D preempted with 561
+time 2388ms: Process A started using the CPU [Q D]            | time 2574ms: Process A started using the CPU [Q D]
+time 2458ms: Time slice expired; process A preempted with 98m | time 2602ms: Process A completed a CPU burst; 1 bursts to go 
+time 2466ms: Process D started using the CPU with 580ms remai | time 2602ms: Process A switching out of CPU; will block on I/
+time 2536ms: Time slice expired; process D preempted with 510 | time 2610ms: Process D started using the CPU [Q <empty>]
+time 2544ms: Process A started using the CPU with 98ms remain | time 2896ms: Process A completed I/O; added to ready queue [Q
+time 2614ms: Time slice expired; process A preempted with 28m | time 2897ms: Time slice expired; process D preempted with 274
+time 2622ms: Process D started using the CPU with 510ms remai | time 2905ms: Process A started using the CPU [Q D]
+time 2692ms: Time slice expired; process D preempted with 440 | time 2975ms: Time slice expired; process A preempted with 98m
+time 2700ms: Process A started using the CPU with 28ms remain | time 2983ms: Process D started using the CPU [Q A]
+time 2728ms: Process A completed a CPU burst; 1 burst to go [ | time 3053ms: Time slice expired; process D preempted with 204
+time 2728ms: Process A switching out of CPU; will block on I/ | time 3061ms: Process A started using the CPU [Q D]
+time 2736ms: Process D started using the CPU with 440ms remai | time 3119ms: Process C completed I/O; added to ready queue [Q
+time 2806ms: Time slice expired; no preemption because ready  | time 3131ms: Time slice expired; process A preempted with 28m
+time 2876ms: Time slice expired; no preemption because ready  | time 3139ms: Process D started using the CPU [Q C A]
+time 2946ms: Time slice expired; no preemption because ready  | time 3209ms: Time slice expired; process D preempted with 134
+time 3016ms: Time slice expired; no preemption because ready  | time 3217ms: Process C started using the CPU [Q A D]
+time 3019ms: Process A completed I/O; added to ready queue [Q | time 3287ms: Time slice expired; process C preempted with 27m
+time 3086ms: Time slice expired; process D preempted with 90m | time 3295ms: Process A started using the CPU [Q D C]
+time 3094ms: Process A started using the CPU [Q D]            | time 3323ms: Process A terminated [Q D C]
+time 3116ms: Process C completed I/O; added to ready queue [Q | time 3326ms: Process D started using the CPU [Q C]
+time 3164ms: Time slice expired; process A preempted with 98m | time 3401ms: Time slice expired; process D preempted with 59m
+time 3172ms: Process D started using the CPU with 90ms remain | time 3409ms: Process C started using the CPU [Q D]
+time 3242ms: Time slice expired; process D preempted with 20m | time 3436ms: Process C completed a CPU burst; 3 bursts to go 
+time 3250ms: Process C started using the CPU [Q A D]          | time 3436ms: Process C switching out of CPU; will block on I/
+time 3320ms: Time slice expired; process C preempted with 27m | time 3444ms: Process D started using the CPU [Q <empty>]
+time 3328ms: Process A started using the CPU with 98ms remain | time 3503ms: Process D completed a CPU burst; 1 bursts to go 
+time 3398ms: Time slice expired; process A preempted with 28m | time 3503ms: Process D switching out of CPU; will block on I/
+time 3406ms: Process D started using the CPU with 20ms remain | time 4324ms: Process D completed I/O; added to ready queue [Q
+time 3426ms: Process D completed a CPU burst; 1 burst to go [ | time 4328ms: Process D started using the CPU [Q <empty>]
+time 3426ms: Process D switching out of CPU; will block on I/ | time 5942ms: Process C completed I/O; added to ready queue [Q
+time 3434ms: Process C started using the CPU with 27ms remain | time 5943ms: Time slice expired; process D preempted with 155
+time 3461ms: Process C completed a CPU burst; 3 bursts to go  | time 5951ms: Process C started using the CPU [Q D]
+time 3461ms: Process C switching out of CPU; will block on I/ | time 6021ms: Time slice expired; process C preempted with 27m
+time 3469ms: Process A started using the CPU with 28ms remain | time 6029ms: Process D started using the CPU [Q C]
+time 3497ms: Process A terminated [Q <empty>]                 | time 6099ms: Time slice expired; process D preempted with 85m
+time 4252ms: Process D completed I/O; added to ready queue [Q | time 6107ms: Process C started using the CPU [Q D]
+time 4256ms: Process D started using the CPU [Q <empty>]      | time 6134ms: Process C completed a CPU burst; 2 bursts to go 
+time 4326ms: Time slice expired; no preemption because ready  | time 6134ms: Process C switching out of CPU; will block on I/
+time 4396ms: Time slice expired; no preemption because ready  | time 6142ms: Process D started using the CPU [Q <empty>]
+time 4466ms: Time slice expired; no preemption because ready  | time 6227ms: Process D terminated [Q <empty>]
+time 4536ms: Time slice expired; no preemption because ready  | time 8640ms: Process C completed I/O; added to ready queue [Q
+time 4606ms: Time slice expired; no preemption because ready  | time 8644ms: Process C started using the CPU [Q <empty>]
+time 4676ms: Time slice expired; no preemption because ready  | time 8741ms: Process C completed a CPU burst; 1 bursts to go 
+time 4746ms: Time slice expired; no preemption because ready  | time 8741ms: Process C switching out of CPU; will block on I/
+time 4816ms: Time slice expired; no preemption because ready  | time 11239ms: Process C completed I/O; added to ready queue [
+time 4886ms: Time slice expired; no preemption because ready  | time 11243ms: Process C started using the CPU [Q <empty>]
+time 4956ms: Time slice expired; no preemption because ready  | time 11340ms: Process C terminated [Q <empty>]
+time 5026ms: Time slice expired; no preemption because ready  | time 11340ms: Simulator ended for RR
+time 5096ms: Time slice expired; no preemption because ready  <
+time 5166ms: Time slice expired; no preemption because ready  <
+time 5236ms: Time slice expired; no preemption because ready  <
+time 5306ms: Time slice expired; no preemption because ready  <
+time 5376ms: Time slice expired; no preemption because ready  <
+time 5446ms: Time slice expired; no preemption because ready  <
+time 5516ms: Time slice expired; no preemption because ready  <
+time 5586ms: Time slice expired; no preemption because ready  <
+time 5656ms: Time slice expired; no preemption because ready  <
+time 5726ms: Time slice expired; no preemption because ready  <
+time 5796ms: Time slice expired; no preemption because ready  <
+time 5866ms: Time slice expired; no preemption because ready  <
+time 5936ms: Time slice expired; no preemption because ready  <
+time 5964ms: Process C completed I/O; added to ready queue [Q <
+time 6006ms: Time slice expired; process D preempted with 20m <
+time 6014ms: Process C started using the CPU [Q D]            <
+time 6084ms: Time slice expired; process C preempted with 27m <
+time 6092ms: Process D started using the CPU with 20ms remain <
+time 6112ms: Process D terminated [Q C]                       <
+time 6120ms: Process C started using the CPU with 27ms remain <
+time 6147ms: Process C completed a CPU burst; 2 bursts to go  <
+time 6147ms: Process C switching out of CPU; will block on I/ <
+time 8650ms: Process C completed I/O; added to ready queue [Q <
+time 8654ms: Process C started using the CPU [Q <empty>]      <
+time 8724ms: Time slice expired; no preemption because ready  <
+time 8751ms: Process C completed a CPU burst; 1 burst to go [ <
+time 8751ms: Process C switching out of CPU; will block on I/ <
+time 11254ms: Process C completed I/O; added to ready queue [ <
+time 11258ms: Process C started using the CPU [Q <empty>]     <
+time 11328ms: Time slice expired; no preemption because ready <
+time 11355ms: Process C terminated [Q <empty>]                <
+time 11359ms: Simulator ended for RR                          <
