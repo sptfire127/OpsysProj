@@ -1,0 +1,143 @@
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 1 ms
+workQ Size : 1 processes
+procPool Size : 2 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 172 ms
+workQ Size : 0 processes
+procPool Size : 2 processes
+algorithm : FCFS
+cProc : Label: A | State: BLOCKED (burstTimeLeft: 168 | burstTime: 168 | burstCount: 4) (IOtimeLeft: 287 | IOtime: 287) (waitTime : 0 arrivalTime : 0)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 564 ms
+workQ Size : 2 processes
+procPool Size : 0 processes
+algorithm : FCFS
+cProc : Label: B | State: FINISHED (burstTimeLeft: 385 | burstTime: 385 | burstCount: 0) (IOtimeLeft: 0 | IOtime: 0) (waitTime : 171 arrivalTime : 0)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 664 ms
+workQ Size : 1 processes
+procPool Size : 0 processes
+algorithm : FCFS
+cProc : Label: C | State: BLOCKED (burstTimeLeft: 97 | burstTime: 97 | burstCount: 4) (IOtimeLeft: 2499 | IOtime: 2499) (waitTime : 373 arrivalTime : 190)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 2441 ms
+workQ Size : 0 processes
+procPool Size : 1 processes
+algorithm : FCFS
+cProc : Label: D | State: BLOCKED (burstTimeLeft: 1770 | burstTime: 1770 | burstCount: 1) (IOtimeLeft: 822 | IOtime: 822) (waitTime : 413 arrivalTime : 250)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 2903.0 ms
+workQ Size : 0 processes
+procPool Size : 2 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 3170.0 ms
+workQ Size : 0 processes
+procPool Size : 2 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 3270.0 ms
+workQ Size : 0 processes
+procPool Size : 1 processes
+algorithm : FCFS
+cProc : Label: C | State: BLOCKED (burstTimeLeft: 97 | burstTime: 97 | burstCount: 3) (IOtimeLeft: 2499 | IOtime: 2499) (waitTime : 380 arrivalTime : 190)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 5047.0 ms
+workQ Size : 0 processes
+procPool Size : 1 processes
+algorithm : FCFS
+cProc : Label: D | State: FINISHED (burstTimeLeft: 1770 | burstTime: 1770 | burstCount: 0) (IOtimeLeft: 822 | IOtime: 822) (waitTime : 420 arrivalTime : 250)
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 5505.0 ms
+workQ Size : 0 processes
+procPool Size : 1 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 5776.0 ms
+workQ Size : 0 processes
+procPool Size : 0 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 8375.0 ms
+workQ Size : 0 processes
+procPool Size : 0 processes
+algorithm : FCFS
+cProc : None
+
+############
+
+############
+PROC INFO:
+cSwitchTime : 8 ms
+RunTime : 10974.0 ms
+workQ Size : 0 processes
+procPool Size : 0 processes
+algorithm : FCFS
+cProc : None
+
+############
