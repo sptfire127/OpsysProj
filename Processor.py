@@ -1,4 +1,4 @@
-#printeted# coding=utf-8
+# coding=utf-8
 from workQ import *
 from ProcessorPrinter import *
 from ProcessorHelper import *
@@ -44,20 +44,20 @@ class Processor():
     Initializer for processor class
     """
     def __init__(self, cSwitchTime, algorithm, tSlice=None):
-        self.rTime = 0
+        self.rTime = 0.0
         self.cSwitchTime = cSwitchTime
         self.cSwitchAmt = 0.0
         self.workQ = workQ()
-        self.totalBurstCount = 0
-        self.totalBurst = 0
+        self.totalBurstCount = 0.0
+        self.totalBurst = 0.0
         self.procPool = []
         self.algorithm = algorithm
         self.cProc = None
-        self.startBurst = 0
-        self.nBurst = 0
+        self.startBurst = 0.0
+        self.nBurst = 0.0
         self.donePool = []
-        self.avgWait = 0
-        self.avgTurnAround = 0
+        self.avgWait = 0.0
+        self.avgTurnAround = 0.0
         self.procPrinter = ProcessorPrinter(self)
         self.procHelper = ProcessorHelper(processor=self)
         self.cSwitcher = ContextSwitchHandler(processor=self)
@@ -91,6 +91,21 @@ class Processor():
         #Increment running time
         self.incrementrTime()
 
+        """
+        #Call correct handler
+        if(self.algorithm == "FCFS"):
+            self.__handle_FCFS()
+        elif(self.algorithm == "SRT"):
+            self.__handle_SRT()
+        elif(self.algorithm == "RR"):
+            self.__handle_RR()
+        else:
+            raise RuntimeError("INVALID ALGORITHM")
+        """
+
+    ########################################################
+    #THESE SHOULD NEVER BE DIRECTLY CALLED, ONLY FROM STEP()
+    ########################################################
 
     """
     Increment the processor counter
@@ -119,6 +134,8 @@ class Processor():
                 # Add this to the workQ and remove it from procPool later
                 self.workQ.enqueu(p)
                 rLst.append(p)
+                if(p.label == "B"):
+                    print("Found B at time " + str(self.rTime) + "\n" + str(p))
 
                 if(p.arrivalTimeLeft == -25): #Aritrary constant
 
@@ -126,14 +143,11 @@ class Processor():
                         # We have to deque because of the way goldS did the output.
                         # When something is going to preempt. it isn't in the workQ.
                         # Remove, Print, then re-add
+                        self.procHelper.logBurst()
                         k = self.workQ.dequeue()
                         writeOutput("time {0}ms: Process {1} completed I/O and will preempt {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.procPrinter.getQStr()), self.cProc.label, evenIO())
                         p.arrivalTimeLeft = -25 #Aritrary constant
                         self.workQ.enqueu(k)
-
-                    elif(p.burstTimeLeft < p.burstTime):
-                        pass
-
                     else:
                         writeOutput("time {0}ms: Process {1} completed I/O; added to ready queue {2}\n".format(int(self.rTime), p.label, self.procPrinter.getQStr()), p.label, evenIO())
 
@@ -141,14 +155,17 @@ class Processor():
                     #We have to deque because of the way goldS did the output.
                     #When something is going to preempt. it isn't in the workQ.
                     #Remove, Print, then re-add
+                    self.procHelper.logBurst()
                     k = self.workQ.dequeue()
                     writeOutput("time {0}ms: Process {1} arrived and will preempt {2} {3}\n".format(int(self.rTime), p.label, self.cProc.label, self.procPrinter.getQStr()), self.cProc.label, evenIO())
 
                     p.arrivalTimeLeft = -25 #Aritrary constant
                     self.workQ.enqueu(k)
                 else:
+                    if(p.label == "B"):
+                        print("B ARRIVED at time " + str(self.rTime) + "\n" + str(p))
 
-                    writeOutput("time {0}ms: Process {1} arrived and added to ready queue {2}\n".format(int(self.rTime), p.label, self.procPrinter.getQStr()), p.label, evenIO())
+                    writeOutput("time {0}ms: Process {1} arrived and added to ready queue {2}\n".format(int(self.rTime), p.label, self.procPrinter.getQStr()), self.rTime, evenIO())
                     p.arrivalTimeLeft = -25 #Aritrary constant
                 ####################################################
 
