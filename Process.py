@@ -25,7 +25,7 @@ Attributes: - Label
 
 
 class Process():
-    def __init__(self, label, arrival, burst, burstCount, IOtime):
+    def __init__(self, processor, label, arrival, burst, burstCount, IOtime):
         assert (burst != 0 and burstCount != 0)
         self.label = label
         self.state = "READY"
@@ -35,10 +35,14 @@ class Process():
         self.burstTime = burst
         self.burstCount = burstCount
         self.executionTime = 0
+        self.processor = processor
+        self.lastLogged = 0
+        self.startBurst = self.processor.startBurst
         self.IOtime = IOtime
         self.burstTimeLeft = self.burstTime
         self.IOtimeLeft = self.IOtime
         self.waitTime = 0
+        self.isContextSwitching = False
         self.turnAround = 0
 
     """
@@ -76,7 +80,7 @@ class Process():
         # Determine state and decriment accoringly
         # Only increment wait if proc has started running
         if (self.state == "READY" and self.arrived):
-            self.waitTime += 1
+                self.waitTime += 1
 
         # Proc is waiting to arrive
         elif (self.state == "READY" and not self.arrived):

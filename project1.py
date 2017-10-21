@@ -3,7 +3,6 @@ from Process import *
 from pprint import pprint
 import random
 from output import *
-from output import __writeOutput
 import sys
 
 def main(cs, algo, time):
@@ -20,13 +19,13 @@ def main(cs, algo, time):
             burst = int(line[2])
             bCount = int(line[3])
             ioTime = int(line[4])
-            t = Process(label, arrivalTime, burst, bCount, ioTime)
+            t = Process(myProcessor, label, arrivalTime, burst, bCount, ioTime)
             myProcessor.procHelper.addProc(t)
     myProcessor.procHelper.run(-1)
 
 if __name__ == "__main__":
     main(8, "FCFS", 0)
-    __writeOutput("\n")
+    writeOutput("\n", 0, 0)
     main(8, "SRT", 0)
-    __writeOutput("\n")
+    #writeOutput("\n\n", 0, 0)
     #main(8, "RR", 70)

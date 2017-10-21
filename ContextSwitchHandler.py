@@ -72,7 +72,6 @@ class ContextSwitchHandler():
 
                 # Add new proc to self
                 newProc = self.processor.workQ.dequeue()
-                newProc.waitTime -= i
                 self.processor.cProc = newProc
                 self.processor.cProc.stateChange("RUNNING")
 
@@ -80,14 +79,8 @@ class ContextSwitchHandler():
         # Increment the context switch counter.
         # Here we have completed the context switch
         if(self.processor.cProc is not None):
-            if (self.processor.cProc.burstTimeLeft < self.processor.cProc.burstTime):
-                writeOutput(
-                    "time {0}ms: Process {1} started using the CPU with {2}ms remaining {3}\n".format(
-                        int(self.processor.rTime), self.processor.cProc.label,
-                        self.processor.cProc.burstTimeLeft,
-                        self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
-
-            else:
-                writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(self.processor.rTime, self.processor.cProc.label, self.processor.procPrinter.getQStr()), self.processor.cProc.label, evenCPU())
+            self.processor.startBurst = self.processor.rTime
+            print("cSwitch: time {0}ms: I'm about to start my burst bro".format(self.processor.rTime))
+            writeOutput("time {0}ms: Process {1} started using the CPU {2}\n".format(self.processor.rTime, self.processor.cProc.label, self.processor.procPrinter.getQStr()), self.processor.cProc.label, evenCPU())
 
         self.processor.cSwitchAmt += factor

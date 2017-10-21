@@ -23,23 +23,23 @@ class ProcessorHelper():
         #If -1, run till completion
         if(cycles == -1):
             i = 0
-                                                                                                                                                    #Pass a space in to ensure sorts to first pos
-            writeOutput("time {0}ms: Simulator started for {1} {2}\n".format(int(self.processor.rTime), self.processor.algorithm, self.processor.procPrinter.getQStr()), " ", evenCPU())
+
+            writeOutput("time {0}ms: Simulator started for {1} {2}\n".format(int(self.processor.rTime), self.processor.algorithm, self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
 
             while(not self.processor.procHelper.finished()):
                 #self.procPrinter.qPrint()               #Print out processor queue's
-                self.processor.step()                 #Step the processor go to disc
+                self.processor.step()                    #Step the processor go to disc
                 i += 1
 
             return 0
 
     def finalize(self):
-
         # CALULATE AVERAGES
         wait = 0
         turnAround = 0
         for p in self.processor.donePool:
             wait += p.waitTime              #Increment wait time
+            turnAround += p.turnAround
 
         # This is the final context switch
         self.processor.cSwitchAmt += .5
@@ -58,21 +58,27 @@ class ProcessorHelper():
         writeSimout("-- average wait time: {0} ms\n".format(round(self.processor.avgWait),2 ))
         writeSimout("-- average turnaround time: {0} ms\n".format(round(self.processor.avgTurnAround, 2)))
         writeSimout("-- total number of context switches: {0}\n".format(int(self.processor.cSwitchAmt)))
-        writeSimout("-- total number of preemptions: 0\n")                                                  # Insert ~ to ensure end of sorting
-        writeOutput("time {0}ms: Simulator ended for {1}\n".format(int(self.processor.rTime), self.processor.algorithm), "~", evenCPU())
+        writeSimout("-- total number of preemptions: 0\n")
+        writeOutput("time {0}ms: Simulator ended for {1}\n".format(int(self.processor.rTime), self.processor.algorithm), self.processor.rTime, evenCPU())
         writeOutput()
 
 
 
     def logBurst(self):
         # Calculate the current burst time
-
-        bTime = self.processor.rTime - self.processor.startBurst
-        #print("Process {0} should have burst time {1}, and has actual burst time {2}\n".format(self.processor.cProc.label, self.processor.cProc.burstTime, bTime))
-        self.processor.nBurst += 1
-        #print("Total burst time = {0}, ".format(self.processor.totalBurst))
-        self.processor.totalBurst = (self.processor.totalBurst + bTime)
-        #print("is now = {0}\n".format(self.processor.totalBurst))
+        if (self.processor.rTime > self.processor.cProc.lastLogged):
+            bTime = self.processor.rTime - self.processor.startBurst
+            # Account for waitTime increasing an extra time
+            self.processor.cProc.waitTime -= 1
+            print("time {0}ms: Process {1} my wait time is {2}."
+                  .format(self.processor.rTime, self.processor.cProc.label, self.processor.cProc.waitTime))
+            print("time {0}: Process {1} should have burst time {2}, and has actual burst time {3}\n".format(self.processor.rTime, self.processor.cProc.label, self.processor.cProc.burstTime, bTime))
+            self.processor.nBurst += 1
+            print("time {0}: I started bursting at {1}".format(self.processor.rTime, self.processor.startBurst))
+            print("time {0}:Total burst time = {1}, ".format(self.processor.rTime,self.processor.totalBurst))
+            self.processor.totalBurst = (self.processor.totalBurst + bTime)
+            print("is now = {0}\n".format(self.processor.totalBurst))
+            self.processor.cProc.lastLogged = self.processor.rTime
 
     """
     Add a processor to the procPool
@@ -117,13 +123,15 @@ class ProcessorHelper():
             # append to donePool
             self.processor.donePool.append(self.processor.cProc)
             writeOutput(
-                "time {0}ms: Process {1} terminated {2}\n".format(int(self.processor.rTime), self.processor.cProc.label, self.processor.procPrinter.getQStr()), self.processor.cProc.label, evenCPU())
+                "time {0}ms: Process {1} terminated {2}\n".format(int(self.processor.rTime), self.processor.cProc.label, self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
+            print("FINISHED: time {0}ms: I'm about to start my burst bro".format(self.processor.rTime))
+            self.processor.procHelper.logBurst()
             # Call step even though we're done so the process can calculate final
             # average statistics
             self.processor.cProc.step()
+            #print(self.processor.cProc.turnAround)
             # Check to see if we are finished. If so, return None
             if (self.processor.procHelper.finished()):
-                self.processor.procHelper.logBurst()
                 return None
 
             # Not ended, return true
@@ -139,7 +147,8 @@ class ProcessorHelper():
                         int(self.processor.rTime),
                         self.processor.cProc.label,
                         self.processor.cProc.burstCount,
-                        self.processor.procPrinter.getQStr()), self.processor.cProc.label, evenCPU())
+                        self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
+
             else:
                 # Next time to pre-empt is now + the time slice + context switch time
                 writeOutput(
@@ -147,7 +156,8 @@ class ProcessorHelper():
                         int(self.processor.rTime),
                         self.processor.cProc.label,
                         self.processor.cProc.burstCount,
-                        self.processor.procPrinter.getQStr()), self.processor.cProc.label, evenCPU())
+                        self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
+            print("BLOCKED: time {0}ms: I'm about to start my burst bro".format(self.processor.rTime))
             self.processor.procHelper.logBurst()
 
 
@@ -167,6 +177,29 @@ class ProcessorHelper():
                 # If next proc.burst < this proc's burst
                 p = self.processor.workQ.peak()
                 if (p.burstTimeLeft < self.processor.cProc.burstTimeLeft):
+                    if (self.processor.cProc.burstTimeLeft < self.processor.cProc.burstTime):
+                        # For some reason the SRT algorithm is 1MS off on burstTime left... you know what to do
+                        if (self.processor.algorithm == "SRT"):
+                            writeOutput(
+                                "time {0}ms: Process {1} started using the CPU with {2}ms remaining {3}\n".format(
+                                    int(self.processor.rTime), self.processor.cProc.label,
+                                    self.processor.cProc.burstTimeLeft,
+                                    self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
+                        else:
+                            writeOutput(
+                                "time {0}ms: Process {1} started using the CPU with {2}ms remaining {3}\n".format(
+                                    int(self.processor.rTime), self.processor.cProc.label,
+                                    self.processor.cProc.burstTimeLeft,
+                                    self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
+                    else:
+                        # This is to ensure that the workQ is in its updated state before printing.
+                        # it has no actual affect on the running since we will step it before
+                        # any calculations are done
+                        self.processor.workQ.step(self.processor.algorithm)
+                        writeOutput(
+                            "time {0}ms: Process {1} started using the CPU {2}\n".format(int(self.processor.rTime),
+                                                                                         self.processor.cProc.label,
+                                                                                         self.processor.procPrinter.getQStr()), self.processor.rTime, evenCPU())
                     return True
 
 
